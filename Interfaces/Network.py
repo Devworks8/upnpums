@@ -2,18 +2,10 @@
 Network.py is part of the Interfaces package.
 """
 
-__AUTHOR__ = "Christian Lachapelle"
+import interfaces.devices.mediaserver as media
 
 
-class Upnp:
-    """
-    All UPnP work done here.
-    """
-    def __init__(self):
-        pass
-
-
-class Daemonize(Upnp):
+class Daemonize(media.MediaServerDevice):
     """
     All server work done here.
     """
