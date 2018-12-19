@@ -4,41 +4,7 @@ import platform
 import getopt
 import readline
 
-
-# Most of the CmdCompleter class was originally written by John Kenyan
-# It serves to tab-complete commands inside the program's shell
-class CmdCompleter:
-    def __init__(self, commands):
-        self.commands = commands
-
-    # Traverses the list of available commands
-    def traverse(self, tokens, tree):
-        retVal = []
-
-        # If there are no commands, or no user input, return null
-        if tree is None or len(tokens) == 0:
-            retVal = []
-        # If there is only one word, only auto-complete the primary commands
-        elif len(tokens) == 1:
-            retVal = [x + ' ' for x in tree if x.startswith(tokens[0])]
-        # Else auto-complete for the sub-commands
-        elif tokens[0] in tree.keys():
-            retVal = self.traverse(tokens[1:], tree[tokens[0]])
-
-        return retVal
-
-    # Returns a list of possible commands that match the partial command that the user has entered
-    def complete(self, text, state):
-        try:
-            tokens = readline.get_line_buffer().split()
-            if not tokens or readline.get_line_buffer()[-1] == ' ':
-                tokens.append('')
-            results = self.traverse(tokens, self.commands) + [None]
-            return results[state]
-        except Exception as e:
-            print("Failed to complete command: %s" % str(e))
-
-        return
+from shell.commands.common import *
 
 
 # Show command help
@@ -204,6 +170,7 @@ def showHelp(command):
 
     try:
         print(helpInfo[command]['longListing'] % command)
+
     except:
         for command, cmdHelp in helpInfo.items():
             print("%s\t\t%s" % (command, cmdHelp['quickView']))
@@ -230,32 +197,42 @@ Command line usage: %s [OPTIONS]
 def parseCliOpts(argc, argv, hp):
     try:
         opts, args = getopt.getopt(argv[1:], 's:l:i:b:udvh')
+
     except getopt.GetoptError as e:
         print('Usage Error:', e)
         usage()
+
     else:
         for (opt, arg) in opts:
+
             if opt == '-s':
                 print('')
                 load(2, ['load', arg], hp)
                 print('')
+
             elif opt == '-l':
                 print('')
                 log(2, ['log', arg], hp)
                 print('')
+
             elif opt == '-u':
                 hp.UNIQ = toggleVal(hp.UNIQ)
+
             elif opt == '-d':
                 hp.DEBUG = toggleVal(hp.DEBUG)
                 print('Debug mode enabled!')
+
             elif opt == '-v':
                 hp.VERBOSE = toggleVal(hp.VERBOSE)
                 print('Verbose mode enabled!')
+
             elif opt == '-b':
                 hp.BATCH_FILE = open(arg, 'r')
                 print("Processing commands from '%s'..." % arg)
+
             elif opt == '-h':
                 usage()
+
             elif opt == '-i':
                 networkInterfaces = []
                 requestedInterface = arg
@@ -266,36 +243,47 @@ def parseCliOpts(argc, argv, hp):
                 try:
                     if platform.system() != 'Windows':
                         fp = open('/proc/net/dev', 'r')
+
                         for line in fp.readlines():
+
                             if ':' in line:
                                 interfaceName = line.split(':')[0].strip()
+
                                 if interfaceName == requestedInterface:
                                     found = True
                                     break
+
                                 else:
                                     networkInterfaces.append(line.split(':')[0].strip())
                         fp.close()
+
                     else:
                         networkInterfaces.append('Run ipconfig to get a list of available network interfaces!')
+
                 except Exception as e:
                     print('Error opening file:', e)
                     print("If you aren't running Linux, this file may not exist!")
 
                 if not found and len(networkInterfaces) > 0:
                     print("Failed to find interface '%s'; try one of these:\n" % requestedInterface)
+
                     for iface in networkInterfaces:
                         print(iface)
+
                     print('')
                     sys.exit(1)
+
                 else:
+                    """
                     if not hp.initSockets(False, False, interfaceName):
                         print('Binding to interface %s failed; are you sure you have root privilages??' % interfaceName)
-
+                    """
 
 # Toggle boolean values
 def toggleVal(val):
     if val:
         return False
+
     else:
         return True
 
@@ -314,24 +302,30 @@ def getUserInput(hp, shellPrompt):
         uInput = input(shellPrompt).strip()
         argv = uInput.split()
         argc = len(argv)
+
     except KeyboardInterrupt as e:
         print('\n')
+
         if shellPrompt == defaultShellPrompt:
             quit(0, [], hp)
-        return (0, None)
+
+        return 0, None
+
     if hp.LOG_FILE:
         try:
             hp.LOG_FILE.write("%s\n" % uInput)
+
         except:
             print('Failed to log data to log file!')
 
-    return (argc, argv)
+    return argc, argv
 
 
 # Reads scripted commands from a file
 def getFileInput(hp):
     data = False
     line = hp.BATCH_FILE.readline()
+
     if line:
         data = True
         line = line.strip()
@@ -343,4 +337,4 @@ def getFileInput(hp):
         hp.BATCH_FILE.close()
         hp.BATCH_FILE = None
 
-    return (argc, argv)
+    return argc, argv

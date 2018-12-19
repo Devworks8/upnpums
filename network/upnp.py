@@ -8,7 +8,7 @@ from twisted.internet.protocol import DatagramProtocol
 from twisted.internet import reactor
 from socket import *
 
-from shell.helpers import CmdCompleter
+from shell.commandmanager import CmdManager
 
 
 # UPNP class for getting, sending and parsing SSDP/SOAP XML data (among other things...)
@@ -41,7 +41,7 @@ class Upnp:
 
     def __init__(self, ip, port, iface, appCommands):
         if appCommands:
-            self.completer = CmdCompleter(appCommands)
+            self.completer = CmdManager(appCommands)
         if not self.initSockets(ip, port, iface):
             print('UPNP class initialization failed!')
             print('Bye!')

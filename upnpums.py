@@ -1,16 +1,21 @@
 #!/usr/bin/env python
+"""
+This code is based off the Miranda.
+Christian Lachapelle & Jason Major
+19/12/2018
+"""
 ################################
 # Interactive UPNP application #
 # Craig Heffner                #
 # 07/16/2008                   #
 ################################
 
-import sys
-import os
-
-from shell.commands import *
+from shell.commands.common import *
 from shell.helpers import *
 from network.upnp import *
+from shell.commandmanager import *
+
+__VERSION__ = 0.1
 
 
 # Main
@@ -82,53 +87,63 @@ def main(argc, argv):
     for file in os.listdir(os.getcwd()):
         appCommands['load'][file] = None
 
+    # Initilize the shell class
+    sh = CmdManager(appCommands)
+
     # Initialize upnp class
-    hp = Upnp(False, False, None, appCommands);
+    # hp = Upnp(False, False, None, appCommands);
 
     # Set up tab completion and command history
     readline.parse_and_bind("tab: complete")
-    readline.set_completer(hp.completer.complete)
+    readline.set_completer(sh.complete)
 
     # Set some default values
-    hp.UNIQ = True
-    hp.VERBOSE = False
-    action = False
-    funPtr = False
+    # hp.UNIQ = True
+    #hp.VERBOSE = False
+
 
     # Check command line options
-    parseCliOpts(argc, argv, hp)
+    parseCliOpts(argc, argv, sh)
 
     # Main loop
     while True:
         # Drop user into shell
-        if hp.BATCH_FILE is not None:
-            (argc, argv) = getFileInput(hp)
+        if sh.BATCH_FILE is not None:
+            (argc, argv) = getFileInput(sh)
+
         else:
-            (argc, argv) = getUserInput(hp, False)
+            (argc, argv) = getUserInput(sh, False)
+
         if argc == 0:
             continue
-        action = argv[0]
-        funcPtr = False
+
+        sh.action = argv[0]
+        sh.funcPtr = False
 
         print('')
+
         # Parse actions
         try:
-            if action in appCommands:
-                funcPtr = eval(action)
-        except:
-            funcPtr = False
-            action = False
+            if sh.action in appCommands:
+                sh.funcPtr = eval(sh.action)
 
-        if callable(funcPtr):
+        except:
+            sh.funcPtr = False
+            sh.action = False
+
+        if callable(sh.funcPtr):
             if argc == 2 and argv[1] == 'help':
                 showHelp(argv[0])
+
             else:
                 try:
-                    funcPtr(argc, argv, hp)
+                    sh.funcPtr(argc, argv, sh)
+
                 except KeyboardInterrupt:
                     print('\nAction interrupted by user...')
             print('')
             continue
+
         print('Invalid command. Valid commands are:')
         print('')
         showHelp(False)
@@ -138,11 +153,12 @@ def main(argc, argv):
 if __name__ == "__main__":
     try:
         print('')
-        print('Miranda v1.3')
-        print('The interactive UPnP client')
-        print('Craig Heffner, http://www.devttys0.com')
+        print('UPnPUMS v%' % __VERSION__)
+        print('The interactive UPnP Universal Media Server')
+        print('Christian Lachapelle & Jason Major')
         print('')
         main(len(sys.argv), sys.argv)
+
     except Exception as e:
         print('Caught main exception:', e)
         sys.exit(1)
