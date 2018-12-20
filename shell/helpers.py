@@ -193,92 +193,6 @@ Command line usage: %s [OPTIONS]
     sys.exit(1)
 
 
-# Check command line options
-def parseCliOpts(argc, argv, hp):
-    try:
-        opts, args = getopt.getopt(argv[1:], 's:l:i:b:udvh')
-
-    except getopt.GetoptError as e:
-        print('Usage Error:', e)
-        usage()
-
-    else:
-        for (opt, arg) in opts:
-
-            if opt == '-s':
-                print('')
-                load(2, ['load', arg], hp)
-                print('')
-
-            elif opt == '-l':
-                print('')
-                log(2, ['log', arg], hp)
-                print('')
-
-            elif opt == '-u':
-                hp.UNIQ = toggleVal(hp.UNIQ)
-
-            elif opt == '-d':
-                hp.DEBUG = toggleVal(hp.DEBUG)
-                print('Debug mode enabled!')
-
-            elif opt == '-v':
-                hp.VERBOSE = toggleVal(hp.VERBOSE)
-                print('Verbose mode enabled!')
-
-            elif opt == '-b':
-                hp.BATCH_FILE = open(arg, 'r')
-                print("Processing commands from '%s'..." % arg)
-
-            elif opt == '-h':
-                usage()
-
-            elif opt == '-i':
-                networkInterfaces = []
-                requestedInterface = arg
-                interfaceName = None
-                found = False
-
-                # Get a list of network interfaces. This only works on unix boxes.
-                try:
-                    if platform.system() != 'Windows':
-                        fp = open('/proc/net/dev', 'r')
-
-                        for line in fp.readlines():
-
-                            if ':' in line:
-                                interfaceName = line.split(':')[0].strip()
-
-                                if interfaceName == requestedInterface:
-                                    found = True
-                                    break
-
-                                else:
-                                    networkInterfaces.append(line.split(':')[0].strip())
-                        fp.close()
-
-                    else:
-                        networkInterfaces.append('Run ipconfig to get a list of available network interfaces!')
-
-                except Exception as e:
-                    print('Error opening file:', e)
-                    print("If you aren't running Linux, this file may not exist!")
-
-                if not found and len(networkInterfaces) > 0:
-                    print("Failed to find interface '%s'; try one of these:\n" % requestedInterface)
-
-                    for iface in networkInterfaces:
-                        print(iface)
-
-                    print('')
-                    sys.exit(1)
-
-                else:
-                    """
-                    if not hp.initSockets(False, False, interfaceName):
-                        print('Binding to interface %s failed; are you sure you have root privilages??' % interfaceName)
-                    """
-
 # Toggle boolean values
 def toggleVal(val):
     if val:
@@ -322,9 +236,9 @@ def getUserInput(hp, shellPrompt):
 
 
 # Reads scripted commands from a file
-def getFileInput(hp):
+def getFileInput(object):
     data = False
-    line = hp.BATCH_FILE.readline()
+    line = object.BATCH_FILE.readline()
 
     if line:
         data = True
@@ -334,7 +248,7 @@ def getFileInput(hp):
     argc = len(argv)
 
     if not data:
-        hp.BATCH_FILE.close()
-        hp.BATCH_FILE = None
+        object.BATCH_FILE.close()
+        object.BATCH_FILE = None
 
     return argc, argv
