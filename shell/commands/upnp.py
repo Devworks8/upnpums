@@ -43,7 +43,7 @@ upnpCommands = {
         'device': None,
         'service': None,
         'help': None
-    }
+    },
 }
 
 

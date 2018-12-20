@@ -51,7 +51,11 @@ class CmdManager(CmdCompleter):
         self.UNIQ = True
         self.VERBOSE = False
         # Table of valid commands - all primary commands must have an associated function
-        self.appCommands = commonCommands
+        self.appCommands = {**commonCommands, **upnpCommands}
+        self.activeInterface = []
+        super().__init__(self.appCommands)
+        self.__cmdline()
+        self.__setauto()
 
     def __cmdline(self):
         # Set up tab completion and command history
@@ -143,16 +147,12 @@ class CmdManager(CmdCompleter):
                             print(
                                 'Binding to interface %s failed; are you sure you have root privilages??' % interfaceName)
 
-    def __setauto(self, interface):
+    def __setauto(self):
         # The load command should auto complete on the contents of the current directory
         for file in os.listdir(os.getcwd()):
-            interface.appCommands['load'][file] = None
+            self.appCommands['load'][file] = None
 
     def start(self, argc, argv, interface):
-
-        super().__init__(interface.appCommands)
-        self.__cmdline()
-        self.__setauto(interface)
 
         # Check command line options
         self.__parseCliOpts(argc, argv, interface)

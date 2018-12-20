@@ -1,11 +1,10 @@
-import sys
 import os
 import pickle
 import time
 import base64
 
-from network.ums import *
 from shell.helpers import *
+from network.interfaces.ums import *
 
 interfaces = {"ums": "Ums",
               "upnp": "Upnp"}
@@ -40,7 +39,7 @@ commonCommands = {
     },
     'start': {
         'interface': None
-    }
+    },
 }
 
 

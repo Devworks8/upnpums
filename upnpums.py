@@ -10,9 +10,6 @@ Christian Lachapelle & Jason Major
 # 07/16/2008                   #
 ################################
 
-import sys
-
-from network.upnp import *
 from shell.commandmanager import *
 
 __VERSION__ = "0.1"
