@@ -4,7 +4,11 @@ import pickle
 import time
 import base64
 
+from network.ums import *
 from shell.helpers import *
+
+interfaces = {"ums": "Ums",
+              "upnp": "Upnp"}
 
 commonCommands = {
     'help': {
@@ -30,8 +34,26 @@ commonCommands = {
     'debug': {
         'command': None,
         'help': None
+    },
+    'stop': {
+        'interface': None
+    },
+    'start': {
+        'interface': None
     }
 }
+
+
+def start(argc, argv, interface):
+    if argv[1].lower() in interfaces:
+        iface = eval(interfaces[argv[1].lower()] + "()")
+        iface.start()
+
+
+def stop(argc, argv, interface):
+    if argv[1].lower() in interfaces:
+        iface = eval(interfaces[argv[1].lower()] + "()")
+        iface.stop()
 
 
 # Manipulate application settings
