@@ -8,6 +8,44 @@ from shell.helpers import *
 
 # from shell.helpers import *
 
+upnpCommands = {
+    'set': {
+        'uniq': None,
+        'socket': None,
+        'show': None,
+        'iface': None,
+        'debug': None,
+        'version': None,
+        'verbose': None,
+        'timeout': None,
+        'max': None,
+        'help': None
+    },
+    'head': {
+        'set': None,
+        'show': None,
+        'del': None,
+        'help': None
+    },
+    'host': {
+        'list': None,
+        'info': None,
+        'get': None,
+        'details': None,
+        'send': None,
+        'summary': None,
+        'help': None
+    },
+    'pcap': {
+        'help': None
+    },
+    'msearch': {
+        'device': None,
+        'service': None,
+        'help': None
+    }
+}
+
 
 # Actively search for UPNP devices
 def msearch(argc, argv, hp):

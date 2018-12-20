@@ -6,6 +6,33 @@ import base64
 
 from shell.helpers import *
 
+commonCommands = {
+    'help': {
+        'help': None
+    },
+    'quit': {
+        'help': None
+    },
+    'exit': {
+        'help': None
+    },
+    'save': {
+        'data': None,
+        'info': None,
+        'help': None
+    },
+    'load': {
+        'help': None
+    },
+    'log': {
+        'help': None
+    },
+    'debug': {
+        'command': None,
+        'help': None
+    }
+}
+
 
 # Manipulate application settings
 def set(argc, argv, hp):
@@ -451,16 +478,16 @@ def debug(argc, argv, hp):
 
 
 # Quit!
-def exit(argc, argv, hp):
-    quit(argc, argv, hp)
+def exit(argc, argv, interface):
+    quit(argc, argv, interface)
 
 
 # Quit!
-def quit(argc, argv, hp):
+def quit(argc, argv, interface):
     if argc == 2 and argv[1] == 'help':
         showHelp(argv[0])
         return
     print('Bye!')
     print('')
-    hp.cleanup()
+    cleanup(interface)
     sys.exit(0)

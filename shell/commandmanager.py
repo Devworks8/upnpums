@@ -43,85 +43,23 @@ class CmdCompleter:
 
 
 class CmdManager(CmdCompleter):
-    def __init__(self, argc, argv):
+    def __init__(self):
         self.action = False
         self.funPtr = False
         self.BATCH_FILE = None
+        self.LOG_FILE = False
+        self.UNIQ = True
+        self.VERBOSE = False
         # Table of valid commands - all primary commands must have an associated function
-        self.appCommands = {
-            'help': {
-                'help': None
-            },
-            'quit': {
-                'help': None
-            },
-            'exit': {
-                'help': None
-            },
-            'save': {
-                'data': None,
-                'info': None,
-                'help': None
-            },
-            'load': {
-                'help': None
-            },
-            'set': {
-                'uniq': None,
-                'socket': None,
-                'show': None,
-                'iface': None,
-                'debug': None,
-                'version': None,
-                'verbose': None,
-                'timeout': None,
-                'max': None,
-                'help': None
-            },
-            'head': {
-                'set': None,
-                'show': None,
-                'del': None,
-                'help': None
-            },
-            'host': {
-                'list': None,
-                'info': None,
-                'get': None,
-                'details': None,
-                'send': None,
-                'summary': None,
-                'help': None
-            },
-            'pcap': {
-                'help': None
-            },
-            'msearch': {
-                'device': None,
-                'service': None,
-                'help': None
-            },
-            'log': {
-                'help': None
-            },
-            'debug': {
-                'command': None,
-                'help': None
-            }
-        }
-        super().__init__(self.appCommands)
-        self.cmdline()
-        self.setauto()
-        # Check command line options
-        self.parseCliOpts(argc, argv)
+        self.appCommands = commonCommands
 
-    def cmdline(self):
+    def __cmdline(self):
         # Set up tab completion and command history
         readline.parse_and_bind("tab: complete")
         readline.set_completer(self.complete)
 
     # Check command line options
-    def parseCliOpts(argc, argv, hp=None):
+    def __parseCliOpts(self, argc, argv, interface):
         try:
             opts, args = getopt.getopt(argv[1:], 's:l:i:b:udvh')
 
@@ -134,27 +72,27 @@ class CmdManager(CmdCompleter):
 
                 if opt == '-s':
                     print('')
-                    load(2, ['load', arg], hp)
+                    load(2, ['load', arg], interface)
                     print('')
 
                 elif opt == '-l':
                     print('')
-                    log(2, ['log', arg], hp)
+                    log(2, ['log', arg], interface)
                     print('')
 
                 elif opt == '-u':
-                    hp.UNIQ = toggleVal(hp.UNIQ)
+                    interface.UNIQ = toggleVal(interface.UNIQ)
 
                 elif opt == '-d':
-                    hp.DEBUG = toggleVal(hp.DEBUG)
+                    interface.DEBUG = toggleVal(interface.DEBUG)
                     print('Debug mode enabled!')
 
                 elif opt == '-v':
-                    hp.VERBOSE = toggleVal(hp.VERBOSE)
+                    interface.VERBOSE = toggleVal(interface.VERBOSE)
                     print('Verbose mode enabled!')
 
                 elif opt == '-b':
-                    hp.BATCH_FILE = open(arg, 'r')
+                    interface.BATCH_FILE = open(arg, 'r')
                     print("Processing commands from '%s'..." % arg)
 
                 elif opt == '-h':
@@ -201,11 +139,65 @@ class CmdManager(CmdCompleter):
                         sys.exit(1)
 
                     else:
-                        if not hp or not hp.initSockets(False, False, interfaceName):
+                        if isinstance(interface, CmdManager) or not interface.initSockets(False, False, interfaceName):
                             print(
                                 'Binding to interface %s failed; are you sure you have root privilages??' % interfaceName)
 
-    def setauto(self):
+    def __setauto(self, interface):
         # The load command should auto complete on the contents of the current directory
         for file in os.listdir(os.getcwd()):
-            self.appCommands['load'][file] = None
+            interface.appCommands['load'][file] = None
+
+    def start(self, argc, argv, interface):
+
+        super().__init__(interface.appCommands)
+        self.__cmdline()
+        self.__setauto(interface)
+
+        # Check command line options
+        self.__parseCliOpts(argc, argv, interface)
+
+        # Main loop
+        while True:
+
+            # Drop user into shell
+            if interface.BATCH_FILE is not None:
+                (argc, argv) = getFileInput(interface)
+
+            else:
+                (argc, argv) = getUserInput(interface, False)
+
+            if argc == 0:
+                continue
+
+            interface.action = argv[0]
+            interface.funcPtr = False
+
+            print('')
+
+            # Parse actions
+            try:
+                if interface.action in interface.appCommands:
+                    interface.funcPtr = eval(interface.action)
+
+            except:
+                interface.funcPtr = False
+                interface.action = False
+
+            if callable(interface.funcPtr):
+                if argc == 2 and argv[1] == 'help':
+                    showHelp(argv[0])
+
+                else:
+                    try:
+                        interface.funcPtr(argc, argv, interface)
+
+                    except KeyboardInterrupt:
+                        print('\nAction interrupted by user...')
+                print('')
+                continue
+
+            print('Invalid command. Valid commands are:')
+            print('')
+            showHelp(False)
+            print('')

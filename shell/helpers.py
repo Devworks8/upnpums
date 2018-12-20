@@ -1,10 +1,9 @@
 ################ End Action Functions ######################
 
+import sys
 import platform
 import getopt
 import readline
-
-from shell.commands.common import *
 
 
 # Show command help
@@ -252,3 +251,8 @@ def getFileInput(object):
         object.BATCH_FILE = None
 
     return argc, argv
+
+
+def cleanup(interface):
+    if interface.LOG_FILE:
+        interface.LOG_FILE.close()
