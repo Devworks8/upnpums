@@ -10,6 +10,7 @@ Christian Lachapelle & Jason Major
 # 07/16/2008                   #
 ################################
 
+from config.configure import *
 from shell.commandmanager import *
 
 __VERSION__ = "0.1"
@@ -17,9 +18,12 @@ __VERSION__ = "0.1"
 
 # Main
 def main(argc, argv):
+    # Initialize the confio
+    cm = CfgManager()
+    cm.get(header="ums", value=None)
 
     # Initilize the shell class
-    sh = CmdManager()
+    sh = CmdManager(config=cm)
     sh.start(argc, argv, interface=sh)
 
     # Initialize upnp class

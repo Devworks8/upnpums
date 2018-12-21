@@ -43,7 +43,7 @@ class CmdCompleter:
 
 
 class CmdManager(CmdCompleter):
-    def __init__(self):
+    def __init__(self, config):
         self.action = False
         self.funPtr = False
         self.BATCH_FILE = None
