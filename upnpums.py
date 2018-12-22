@@ -18,9 +18,9 @@ __VERSION__ = "0.1"
 
 # Main
 def main(argc, argv):
-    # Initialize the confio
+    # Initialize the config
     cm = CfgManager()
-    cm.get(header="ums", value=None)
+    print(cm.get(header="ums", value=None, var=cm.settings))
 
     # Initilize the shell class
     sh = CmdManager(config=cm)
