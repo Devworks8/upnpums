@@ -1,5 +1,7 @@
 import os.path
 import collections
+from itertools import chain
+from deepmerge import always_merger
 
 from yaml import load, dump, YAMLObject
 
@@ -17,8 +19,8 @@ class CfgManager:
     def __load_settings(self):
         if os.path.exists("./settings.yml"):
             with open("./settings.yml") as settings:
-                # return self._flatten(load(settings))
-                return load(settings)
+                return self._flatten(load(settings))
+                # return load(settings)
         else:
             _ = open("./settings.yml", 'w')
             dump(load(self.__DEFAULTS), _, default_flow_style=False)
@@ -31,12 +33,13 @@ class CfgManager:
             path: None
         m3u8:
             path: None
-        upnp:
-            ip: '285.255.255.255'
-            port: 1900
-        ums:
-            ip: None
-            port: None
+        interface:
+            upnp:
+                ip: '285.255.255.255'
+                port: 1900
+            ums:
+                ip: None
+                port: None
                 """
 
         return defaults
@@ -53,13 +56,20 @@ class CfgManager:
                 items.append((new_key, v))
         return dict(items)
 
-    def _inflate(self, d, parent_key='', sep='_'):
-        results = []
+    def _inflate(self, d, sep='_'):
+        results = {}
         for k, v in d.items():
-            if len(k) is 1:
-                results.append()
-            # for l in k.split(sep):
-            #    results +=
+            result = ''
+            cap = 0
+            for word in k.split(sep):
+                result += "{" + "'{}': ".format(word)
+                cap += 1
+            result += "'{}'".format(v) + "}" * cap
+            results = always_merger.merge(results, eval(result))
+        return results
+
+
+
 
     def _find_header(self, header=None):
         results = []
@@ -87,7 +97,7 @@ class CfgManager:
 
     def get(self, header=None, value=None, var=None):
         print(self.settings)
-        print(list(self.settings.items()))
+        print(self._inflate(self.settings))
         return self._find_header(header=header)
 
     def set(self, header, value):
