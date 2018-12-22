@@ -20,7 +20,6 @@ __VERSION__ = "0.1"
 def main(argc, argv):
     # Initialize the config
     cm = CfgManager()
-    print(cm.get(header="ums", value=None, var=cm.settings))
 
     # Initilize the shell class
     sh = CmdManager(config=cm)

@@ -1,9 +1,8 @@
 import os.path
 import collections
-from itertools import chain
-from deepmerge import always_merger
 
-from yaml import load, dump, YAMLObject
+from deepmerge import always_merger
+from yaml import load, dump
 
 try:
     from yaml import CLoader as Loader, CDumper as Dumper
@@ -17,6 +16,10 @@ class CfgManager:
         self.settings = self.__load_settings()
 
     def __load_settings(self):
+        """
+        Load settings from file, ifnotexist, create new file.
+        :return: dictionary
+        """
         if os.path.exists("./settings.yml"):
             with open("./settings.yml") as settings:
                 return self._flatten(load(settings))
@@ -47,6 +50,13 @@ class CfgManager:
         # print(self.__DEFAULTS)
 
     def _flatten(self, d, parent_key='', sep='_'):
+        """
+        Flattens nested dictionary.
+        :param d: nested dictionary
+        :param parent_key: root key
+        :param sep: separator to use
+        :return: flattened dictionary
+        """
         items = []
         for k, v in d.items():
             new_key = parent_key + sep + k if parent_key else k
@@ -57,6 +67,12 @@ class CfgManager:
         return dict(items)
 
     def _inflate(self, d, sep='_'):
+        """
+        Expands flattened nested dictionary.
+        :param d: flatten dictionary
+        :param sep: separator used
+        :return: nested dictionary
+        """
         results = {}
         for k, v in d.items():
             result = ''
@@ -68,37 +84,40 @@ class CfgManager:
             results = always_merger.merge(results, eval(result))
         return results
 
-
-
-
-    def _find_header(self, header=None):
+    def _find_header(self, header=None, value=None):
+        """
+        Locate key and value set.
+        :param header: key to look for
+        :param value: key's value to set
+        :return: List of tuples
+        """
         results = []
         for k, v in self.settings.items():
             if header in k:
                 results.append((k, v))
-        return results
 
-    """
-    def _find_header(self, header=None, value=None, var=None):
-        print(var)
-        hasattr(var, 'items')
-        #if hasattr(var, 'items'):
-        for k, v in var.items():
-            if k == header:
-                yield v
-            if isinstance(v, dict):
-                for result in self._find_header(header=header, value=value, var=v):
-                    yield result
-            elif isinstance(v, list):
-                for d in v:
-                    for result in self._find_header(header=header, value=value, var=d):
-                        yield result
-    """
+        if value and results:
+            for i in results:
+                self.settings[i[0]] = value
+            return
+        elif results:
+            return results
+        else:
+            return None
 
-    def get(self, header=None, value=None, var=None):
-        print(self.settings)
-        print(self._inflate(self.settings))
+    def get(self, header=None):
+        """
+        Get the value associated with header
+        :param header: key to search
+        :return: list of tuples
+        """
         return self._find_header(header=header)
 
     def set(self, header, value):
-        pass
+        """
+        Sets the value associated with the header
+        :param header: key to search
+        :param value: new value
+        :return:
+        """
+        self._find_header(header=header, value=value)
