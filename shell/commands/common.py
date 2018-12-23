@@ -56,47 +56,53 @@ def stop(argc, argv, interface):
 
 
 # Manipulate application settings
-def set(argc, argv, hp):
+def set(argc, argv, interface, config, db):
     if argc >= 2:
         action = argv[1]
-        if action == 'uniq':
-            hp.UNIQ = toggleVal(hp.UNIQ)
-            print("Show unique hosts set to: %s" % hp.UNIQ)
+        if action == 'ums_ip':
+            config.set(action, argv[2])
+            return
+        elif action == 'ums_port':
+            config.set(action, argv[2])
+            return
+        elif action == 'uniq':
+            interface.UNIQ = toggleVal(interface.UNIQ)
+            print("Show unique hosts set to: %s" % interface.UNIQ)
             return
         elif action == 'debug':
-            hp.DEBUG = toggleVal(hp.DEBUG)
-            print("Debug mode set to: %s" % hp.DEBUG)
+            interface.DEBUG = toggleVal(interface.DEBUG)
+            print("Debug mode set to: %s" % interface.DEBUG)
             return
         elif action == 'verbose':
-            hp.VERBOSE = toggleVal(hp.VERBOSE)
-            print("Verbose mode set to: %s" % hp.VERBOSE)
+            interface.VERBOSE = toggleVal(interface.VERBOSE)
+            print("Verbose mode set to: %s" % interface.VERBOSE)
             return
         elif action == 'version':
             if argc == 3:
-                hp.UPNP_VERSION = argv[2]
-                print('UPNP version set to: %s' % hp.UPNP_VERSION)
+                interface.UPNP_VERSION = argv[2]
+                print('UPNP version set to: %s' % interface.UPNP_VERSION)
             else:
                 showHelp(argv[0])
             return
         elif action == 'iface':
             if argc == 3:
-                hp.IFACE = argv[2]
-                print('Interface set to %s, re-binding sockets...' % hp.IFACE)
-                if hp.initSockets(hp.ip, hp.port, hp.IFACE):
+                interface.IFACE = argv[2]
+                print('Interface set to %s, re-binding sockets...' % interface.IFACE)
+                if interface.initSockets(interface.ip, interface.port, interface.IFACE):
                     print('Interface change successful!')
                 else:
                     print('Failed to bind new interface - are you sure you have root privilages??')
-                    hp.IFACE = None
+                    interface.IFACE = None
                 return
         elif action == 'socket':
             if argc == 3:
                 try:
                     (ip, port) = argv[2].split(':')
                     port = int(port)
-                    hp.ip = ip
-                    hp.port = port
-                    hp.cleanup()
-                    if not hp.initSockets(ip, port, hp.IFACE):
+                    interface.ip = ip
+                    interface.port = port
+                    interface.cleanup()
+                    if not interface.initSockets(ip, port, interface.IFACE):
                         print("Setting new socket %s:%d failed!" % (ip, port))
                     else:
                         print("Using new socket: %s:%d" % (ip, port))
@@ -106,29 +112,29 @@ def set(argc, argv, hp):
         elif action == 'timeout':
             if argc == 3:
                 try:
-                    hp.TIMEOUT = int(argv[2])
+                    interface.TIMEOUT = int(argv[2])
                 except Exception as e:
                     print('Caught exception setting new timeout value:', e)
                 return
         elif action == 'max':
             if argc == 3:
                 try:
-                    hp.MAX_HOSTS = int(argv[2])
+                    interface.MAX_HOSTS = int(argv[2])
                 except Exception as e:
                     print('Caught exception setting new max host value:', e)
                 return
         elif action == 'show':
-            print('Multicast IP:          ', hp.ip)
-            print('Multicast port:        ', hp.port)
-            print('Network interface:     ', hp.IFACE)
-            print('Receive timeout:       ', hp.TIMEOUT)
-            print('Host discovery limit:  ', hp.MAX_HOSTS)
-            print('Number of known hosts: ', len(hp.ENUM_HOSTS))
-            print('UPNP version:          ', hp.UPNP_VERSION)
-            print('Debug mode:            ', hp.DEBUG)
-            print('Verbose mode:          ', hp.VERBOSE)
-            print('Show only unique hosts:', hp.UNIQ)
-            print('Using log file:        ', hp.LOG_FILE)
+            print('Multicast IP:          ', interface.ip)
+            print('Multicast port:        ', interface.port)
+            print('Network interface:     ', interface.IFACE)
+            print('Receive timeout:       ', interface.TIMEOUT)
+            print('Host discovery limit:  ', interface.MAX_HOSTS)
+            print('Number of known hosts: ', len(interface.ENUM_HOSTS))
+            print('UPNP version:          ', interface.UPNP_VERSION)
+            print('Debug mode:            ', interface.DEBUG)
+            print('Verbose mode:          ', interface.VERBOSE)
+            print('Show only unique hosts:', interface.UNIQ)
+            print('Using log file:        ', interface.LOG_FILE)
             return
 
     showHelp(argv[0])
@@ -366,7 +372,7 @@ def host(argc, argv, hp):
 
 
 # Save data
-def save(argc, argv, hp):
+def save(argc, argv, interface, config, db):
     suffix = '%s_%s.mir'
     uniqName = ''
     saveType = ''
@@ -395,6 +401,10 @@ def save(argc, argv, hp):
             else:
                 showHelp(argv[0])
                 return
+        elif argv[1] == 'config':
+            config.save()
+            print("Config saved.")
+            return
 
         if argc == fnameIndex:
             uniqName = argv[fnameIndex - 1]
@@ -404,6 +414,8 @@ def save(argc, argv, hp):
         showHelp(argv[0])
         return
 
+    # The following is part of the original code.
+    """
     fileName = suffix % (saveType, uniqName)
     if os.path.exists(fileName):
         print("File '%s' already exists! Please try again..." % fileName)
@@ -427,9 +439,9 @@ def save(argc, argv, hp):
             return
     else:
         showHelp(argv[0])
-
+    
     return
-
+    """
 
 # Load data
 def load(argc, argv, hp):
@@ -499,16 +511,17 @@ def debug(argc, argv, hp):
 
 
 # Quit!
-def exit(argc, argv, interface):
-    quit(argc, argv, interface)
+def exit(argc, argv, interface, config, db):
+    quit(argc, argv, interface, config, db)
 
 
 # Quit!
-def quit(argc, argv, interface):
+def quit(argc, argv, interface, config, db):
     if argc == 2 and argv[1] == 'help':
         showHelp(argv[0])
         return
     print('Bye!')
     print('')
+    db.cleanup()
     cleanup(interface)
     sys.exit(0)

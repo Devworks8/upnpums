@@ -43,7 +43,9 @@ class CmdCompleter:
 
 
 class CmdManager(CmdCompleter):
-    def __init__(self, config):
+    def __init__(self, config, db):
+        self._db = db
+        self._config = config
         self.action = False
         self.funPtr = False
         self.BATCH_FILE = None
@@ -152,7 +154,7 @@ class CmdManager(CmdCompleter):
         for file in os.listdir(os.getcwd()):
             self.appCommands['load'][file] = None
 
-    def start(self, argc, argv, interface):
+    def start(self, argc, argv, interface, config, db):
 
         # Check command line options
         self.__parseCliOpts(argc, argv, interface)
@@ -190,7 +192,7 @@ class CmdManager(CmdCompleter):
 
                 else:
                     try:
-                        interface.funcPtr(argc, argv, interface)
+                        interface.funcPtr(argc, argv, interface, config, db)
 
                     except KeyboardInterrupt:
                         print('\nAction interrupted by user...')

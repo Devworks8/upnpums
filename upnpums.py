@@ -22,12 +22,10 @@ def main(argc, argv):
     # Initialize the config
     cm = CfgManager()
     dm = DbParser(config=cm)
-    print(cm.get('database_path')[0][1])
-    dm.list_files(cm.get('database_library')[0][1])
 
     # Initilize the shell class
-    sh = CmdManager(config=cm)
-    sh.start(argc, argv, interface=sh)
+    sh = CmdManager(config=cm, db=dm)
+    sh.start(argc, argv, interface=sh, config=cm, db=dm)
 
     # Initialize upnp class
     # hp = Upnp(False, False, None, appCommands);

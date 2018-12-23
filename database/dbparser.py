@@ -18,7 +18,7 @@ class DbParser:
         else:
             data = connect(db_path)
             self.__setup_database(data=data, headers=self.__load_headers())
-        return None
+        return data
 
     def __setup_database(self, data, headers):
         pass
@@ -37,3 +37,10 @@ class DbParser:
             subindent = ' ' * 4 * (level + 1)
             for f in files:
                 print('{}{}'.format(subindent, f))
+
+    def cleanup(self):
+        """
+        Close the database
+        :return:
+        """
+        self.data.close()

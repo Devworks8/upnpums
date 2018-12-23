@@ -25,10 +25,10 @@ class CfgManager:
                 return self._flatten(load(settings))
                 # return load(settings)
         else:
-            _ = open("./settings.yml", 'w')
-            dump(load(self.__DEFAULTS), _, default_flow_style=False)
+            with open("./settings.yml", 'w') as _:
+                dump(load(self.__DEFAULTS), _, default_flow_style=False)
 
-            return load(self.__DEFAULTS)
+            return self._flatten(load(self.__DEFAULTS))
 
     def __generate_defaults(self):
         defaults = """
@@ -122,3 +122,11 @@ class CfgManager:
         :return:
         """
         self._find_header(header=header, value=value)
+
+    def save(self):
+        """
+        Save current settings to file.
+        :return:
+        """
+        with open("./settings.yml", 'w') as _:
+            dump(self._inflate(self.settings), _, default_flow_style=False)
