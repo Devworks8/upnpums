@@ -33,7 +33,8 @@ class CfgManager:
     def __generate_defaults(self):
         defaults = """
         database:
-            path: None
+            path: './data'
+            library: './library'
         m3u8:
             path: None
         interface:

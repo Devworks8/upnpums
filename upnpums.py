@@ -11,6 +11,7 @@ Christian Lachapelle & Jason Major
 ################################
 
 from config.configure import *
+from database.dbparser import *
 from shell.commandmanager import *
 
 __VERSION__ = "0.1"
@@ -20,6 +21,9 @@ __VERSION__ = "0.1"
 def main(argc, argv):
     # Initialize the config
     cm = CfgManager()
+    dm = DbParser(config=cm)
+    print(cm.get('database_path')[0][1])
+    dm.list_files(cm.get('database_library')[0][1])
 
     # Initilize the shell class
     sh = CmdManager(config=cm)
