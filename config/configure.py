@@ -21,7 +21,8 @@ class CfgManager:
         Load settings from file, ifnotexist, create new file.
         :return: dictionary
         """
-        if os.path.exists("./settings.yml"):
+        print(os.stat("./settings.yml").st_size)
+        if os.path.exists("./settings.yml") and os.stat("./settings.yml").st_size > 1:
             with open("./settings.yml") as settings:
                 return self._flatten(load(settings))
                 # return load(settings)
