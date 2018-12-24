@@ -23,7 +23,6 @@ class DbParser:
     def __setup_database(self, data, headers):
         cursor = data.cursor()
         for header in headers:
-            print(header)
             cursor.execute(header)
             data.commit()
 
