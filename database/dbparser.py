@@ -3,16 +3,16 @@ import os.path
 from m3u8 import *
 from m3u8_generator import *
 from sqlite3.dbapi2 import *
-from mutagen import *
+from mutagen.id3 import ID3
 
 
 class DbParser:
     def __init__(self, config):
-        self._config = config
+        self.config = config
         self.data = self.__load_database()
 
     def __load_database(self):
-        db_path = self._config.get(header='database_path')[0][1] + "/catalog"
+        db_path = self.config.get(header='database_path')[0][1] + "/catalog"
         if os.path.exists(db_path):
             data = connect(db_path)
         else:
@@ -21,12 +21,24 @@ class DbParser:
         return data
 
     def __setup_database(self, data, headers):
-        pass
+        cursor = data.cursor()
+        for header in headers:
+            print(header)
+            cursor.execute(header)
+            data.commit()
 
     def __load_headers(self):
-        headers = """
-        CREATE TABLE 
-        """
+        audio = """
+                CREATE TABLE audio(id INTEGER PRIMARY KEY)
+                """
+        video = """
+                CREATE TABLE video(id INTEGER PRIMARY KEY)
+                """
+        image = """
+                CREATE TABLE image(id INTEGER PRIMARY KEY)
+                """
+
+        headers = [audio, video, image]
         return headers
 
     def list_files(self, startpath):
