@@ -65,65 +65,87 @@ def set(argc, argv, interface, config, db):
         elif action == 'ums_port':
             config.set(action, argv[2])
             return
-        elif action == 'uniq':
-            interface.UNIQ = toggleVal(interface.UNIQ)
-            print("Show unique hosts set to: %s" % interface.UNIQ)
+        elif action == 'upnp_ip':
+            config.set(action, argv[2])
             return
-        elif action == 'debug':
-            interface.DEBUG = toggleVal(interface.DEBUG)
-            print("Debug mode set to: %s" % interface.DEBUG)
+        elif action == 'upnp_port':
+            config.set(action, argv[2])
             return
-        elif action == 'verbose':
-            interface.VERBOSE = toggleVal(interface.VERBOSE)
-            print("Verbose mode set to: %s" % interface.VERBOSE)
+        elif action == 'database_path':
+            config.set(action, argv[2])
             return
-        elif action == 'version':
-            if argc == 3:
-                interface.UPNP_VERSION = argv[2]
-                print('UPNP version set to: %s' % interface.UPNP_VERSION)
-            else:
-                showHelp(argv[0])
+        elif action == 'database_library':
+            config.set(action, argv[2])
             return
-        elif action == 'iface':
-            if argc == 3:
-                interface.IFACE = argv[2]
-                print('Interface set to %s, re-binding sockets...' % interface.IFACE)
-                if interface.initSockets(interface.ip, interface.port, interface.IFACE):
-                    print('Interface change successful!')
+        elif action == 'm3u8_path':
+            config.set(action, argv[2])
+            return
+
+            """
+            elif action == 'uniq':
+                interface.UNIQ = toggleVal(interface.UNIQ)
+                print("Show unique hosts set to: %s" % interface.UNIQ)
+                return
+            elif action == 'debug':
+                interface.DEBUG = toggleVal(interface.DEBUG)
+                print("Debug mode set to: %s" % interface.DEBUG)
+                return
+            elif action == 'verbose':
+                interface.VERBOSE = toggleVal(interface.VERBOSE)
+                print("Verbose mode set to: %s" % interface.VERBOSE)
+                return
+            elif action == 'version':
+                if argc == 3:
+                    interface.UPNP_VERSION = argv[2]
+                    print('UPNP version set to: %s' % interface.UPNP_VERSION)
                 else:
-                    print('Failed to bind new interface - are you sure you have root privilages??')
-                    interface.IFACE = None
+                    showHelp(argv[0])
                 return
-        elif action == 'socket':
-            if argc == 3:
-                try:
-                    (ip, port) = argv[2].split(':')
-                    port = int(port)
-                    interface.ip = ip
-                    interface.port = port
-                    interface.cleanup()
-                    if not interface.initSockets(ip, port, interface.IFACE):
-                        print("Setting new socket %s:%d failed!" % (ip, port))
+            elif action == 'iface':
+                if argc == 3:
+                    interface.IFACE = argv[2]
+                    print('Interface set to %s, re-binding sockets...' % interface.IFACE)
+                    if interface.initSockets(interface.ip, interface.port, interface.IFACE):
+                        print('Interface change successful!')
                     else:
-                        print("Using new socket: %s:%d" % (ip, port))
-                except Exception as e:
-                    print('Caught exception setting new socket:', e)
-                return
-        elif action == 'timeout':
-            if argc == 3:
-                try:
-                    interface.TIMEOUT = int(argv[2])
-                except Exception as e:
-                    print('Caught exception setting new timeout value:', e)
-                return
-        elif action == 'max':
-            if argc == 3:
-                try:
-                    interface.MAX_HOSTS = int(argv[2])
-                except Exception as e:
-                    print('Caught exception setting new max host value:', e)
-                return
+                        print('Failed to bind new interface - are you sure you have root privilages??')
+                        interface.IFACE = None
+                    return
+            elif action == 'socket':
+                if argc == 3:
+                    try:
+                        (ip, port) = argv[2].split(':')
+                        port = int(port)
+                        interface.ip = ip
+                        interface.port = port
+                        interface.cleanup()
+                        if not interface.initSockets(ip, port, interface.IFACE):
+                            print("Setting new socket %s:%d failed!" % (ip, port))
+                        else:
+                            print("Using new socket: %s:%d" % (ip, port))
+                    except Exception as e:
+                        print('Caught exception setting new socket:', e)
+                    return
+            elif action == 'timeout':
+                if argc == 3:
+                    try:
+                        interface.TIMEOUT = int(argv[2])
+                    except Exception as e:
+                        print('Caught exception setting new timeout value:', e)
+                    return
+            elif action == 'max':
+                if argc == 3:
+                    try:
+                        interface.MAX_HOSTS = int(argv[2])
+                    except Exception as e:
+                        print('Caught exception setting new max host value:', e)
+                    return
+            """
         elif action == 'show':
+            print(config.show_config())
+            return
+
+            """
             print('Multicast IP:          ', interface.ip)
             print('Multicast port:        ', interface.port)
             print('Network interface:     ', interface.IFACE)
@@ -136,6 +158,7 @@ def set(argc, argv, interface, config, db):
             print('Show only unique hosts:', interface.UNIQ)
             print('Using log file:        ', interface.LOG_FILE)
             return
+            """
 
     showHelp(argv[0])
     return

@@ -1,6 +1,7 @@
 import os.path
 import collections
 
+import json
 from deepmerge import always_merger
 from yaml import load, dump
 
@@ -105,6 +106,9 @@ class CfgManager:
             return results
         else:
             return None
+
+    def show_config(self):
+        return dump(self._inflate(self.settings), default_flow_style=False)
 
     def get(self, header=None):
         """
