@@ -1,7 +1,6 @@
 import os.path
 import collections
 
-import json
 from deepmerge import always_merger
 from yaml import load, dump
 
@@ -21,11 +20,9 @@ class CfgManager:
         Load settings from file, ifnotexist, create new file.
         :return: dictionary
         """
-        print(os.stat("./settings.yml").st_size)
         if os.path.exists("./settings.yml") and os.stat("./settings.yml").st_size > 1:
             with open("./settings.yml") as settings:
                 return self._flatten(load(settings))
-                # return load(settings)
         else:
             with open("./settings.yml", 'w') as _:
                 dump(load(self.__DEFAULTS), _, default_flow_style=False)
