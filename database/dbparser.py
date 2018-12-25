@@ -9,7 +9,7 @@ from mutagen.id3 import ID3
 class DbParser:
     def __init__(self, config):
         self.config = config
-        self.db_path = config.get(header='database_path')[0][1] + "/catalog"
+        self.db_path = config.get(header='database_path')[0][1] + "/catalog.db"
         self.data = self.__load_database()
 
     def __load_database(self):
@@ -22,7 +22,7 @@ class DbParser:
 
     def __setup_database(self, data, headers):
         cursor = data.cursor()
-        self.populate(cursor=cursor)
+        self.populate(data=data, cursor=cursor)
         """
         count = 1
         for header in headers:
@@ -65,20 +65,26 @@ class DbParser:
         cursor.execute(query)
         self.data.commit()
 
-    def populate(self, cursor):
+    def populate(self, data, cursor):
         for root, dirs, files in os.walk(self.config.get('database_library')[0][1]):
+
             query_table = '''CREATE TABLE {table} (title VARCHAR (30) PRIMARY KEY, 
             duration TIME, format VARCHAR (10), artist VARCHAR (20), 
-            released year, art VARCHAR (20));'''
+            released year, art VARCHAR (20));'''.format(table=os.path.basename(root).replace(' ', '_'))
 
-            cursor.execute(query_table.format(table=os.path.basename(root)))
-            if files:
-                for f in files:
+            try:
+                cursor.execute(query_table)
+
+            except:
+                continue
+
+            for f in files:
+                if f[0] is not '.':
                     query_entry = '''INSERT INTO {table} (title) VALUES ("{name}");'''.format(
-                        table=os.path.basename(root), name=f)
+                        table=os.path.basename(root).replace(' ', '_'), name=f.replace(' ', '_'))
                     cursor.execute(query_entry)
 
-        self.data.commit()
+        data.commit()
         return
 
     def list_files(self, startpath):
