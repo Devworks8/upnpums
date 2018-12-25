@@ -65,6 +65,18 @@ class DbParser:
         cursor.execute(query)
         self.data.commit()
 
+    def __db_key(self, root, dirs, file=False):
+        if len(root.split('/')) > 1:
+            if dirs:
+                return root.split('/')[-2]
+
+        else:
+            return os.path.basename(root)
+        
+        if file:
+            return file
+
+
     def populate(self, data, cursor):
         for root, dirs, files in os.walk(self.config.get('database_library')[0][1]):
 
