@@ -22,6 +22,8 @@ class DbParser:
 
     def __setup_database(self, data, headers):
         cursor = data.cursor()
+        self.populate(cursor=cursor)
+        """
         count = 1
         for header in headers:
             cursor.execute(header[1])
@@ -32,11 +34,12 @@ class DbParser:
             count += 1
 
         data.commit()
+        """
 
     def __load_headers(self):
         audio = """CREATE TABLE audio(id INTEGER PRIMARY KEY, name VARCHAR (10));"""
         video = """CREATE TABLE video(id INTEGER PRIMARY KEY, name VARCHAR (10));"""
-        image = """CREATE TABLE image(id INTEGER PRIMARY KEY, name VARCHAR (10));"""
+        image = """CREATE TABLE image(id  PRIMARY KEY, name VARCHAR (10));"""
 
         headers = [('audio', audio), ('video', video), ('image', image)]
         return headers
@@ -61,6 +64,22 @@ class DbParser:
 
         cursor.execute(query)
         self.data.commit()
+
+    def populate(self, cursor):
+        for root, dirs, files in os.walk(self.config.get('database_library')[0][1]):
+            query_table = '''CREATE TABLE {table} (title VARCHAR (30) PRIMARY KEY, 
+            duration TIME, format VARCHAR (10), artist VARCHAR (20), 
+            released year, art VARCHAR (20));'''
+
+            cursor.execute(query_table.format(table=os.path.basename(root)))
+            if files:
+                for f in files:
+                    query_entry = '''INSERT INTO {table} (title) VALUES ("{name}");'''.format(
+                        table=os.path.basename(root), name=f)
+                    cursor.execute(query_entry)
+
+        self.data.commit()
+        return
 
     def list_files(self, startpath):
         for root, dirs, files in os.walk(startpath):
