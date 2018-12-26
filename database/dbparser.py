@@ -65,37 +65,63 @@ class DbParser:
         cursor.execute(query)
         self.data.commit()
 
-    def __db_key(self, root, dirs, file=False):
-        if len(root.split('/')) > 1:
-            if dirs:
-                return root.split('/')[-2]
+    def __db_key(self, root, dirs):
+        if len(root.split('/')) is 1:
+            return os.path.basename(root).replace(' ', '_')
 
-        else:
-            return os.path.basename(root)
-        
-        if file:
-            return file
+        elif dirs:
+            return root.split('/')[-2]
+
 
 
     def populate(self, data, cursor):
+        parent = True
+
         for root, dirs, files in os.walk(self.config.get('database_library')[0][1]):
+            if parent:
+                query_table = '''CREATE TABLE IF NOT EXISTS {table} (id INTEGER PRIMARY KEY, group_name VARCHAR (15), 
+                title VARCHAR (30), duration TIME, format VARCHAR (10), artist VARCHAR (20), 
+                released year, art VARCHAR (20));'''.format(table=os.path.basename(root).replace(' ', '_'))
 
-            query_table = '''CREATE TABLE {table} (title VARCHAR (30) PRIMARY KEY, 
-            duration TIME, format VARCHAR (10), artist VARCHAR (20), 
-            released year, art VARCHAR (20));'''.format(table=os.path.basename(root).replace(' ', '_'))
+                cursor.execute(query_table)
+                for d in dirs:
+                    query_link = '''INSERT INTO {table} (group_name) VALUES ("{group_name}");'''.format(
+                        table=os.path.basename(root).replace(' ', '_'), group_name=d)
 
-            try:
+                    cursor.execute(query_link)
+
+                for f in files:
+                    if f[0] is not '.':
+                        query_entry = '''INSERT INTO {table} (title) VALUES ("{parent}", "{name}");'''.format(
+                            table=os.path.basename(root).replace(' ', '_'),
+                            group_id=self.__db_key(root=root, dirs=dirs),
+                            name=f.replace(' ', '_'))
+                        cursor.execute(query_entry)
+
+                parent = False
+            
+            else:
+                query_table = '''CREATE TABLE IF NOT EXISTS {table} (id INTEGER PRIMARY KEY, group_name VARCHAR (15), 
+                                title VARCHAR (30), duration TIME, format VARCHAR (10), artist VARCHAR (20), 
+                                released year, art VARCHAR (20), group_id INTEGER NOT NULL, 
+                                FOREIGN KEY (id) REFERENCES {parent}(group_id));'''.format(
+                    table=os.path.basename(root).replace(' ', '_'), parent=self.__db_key(root=root, dirs=dirs))
+
                 cursor.execute(query_table)
 
-            except:
-                continue
+                for d in dirs:
+                    query_link = '''INSERT INTO {table} (group_name, group_id) VALUES ("{group_name}");'''.format(
+                        table=os.path.basename(root).replace(' ', '_'), group_name=d)
 
-            for f in files:
-                if f[0] is not '.':
-                    query_entry = '''INSERT INTO {table} (title) VALUES ("{name}");'''.format(
-                        table=os.path.basename(root).replace(' ', '_'), name=f.replace(' ', '_'))
-                    cursor.execute(query_entry)
+                    cursor.execute(query_link)
 
+                for f in files:
+                    if f[0] is not '.':
+                        query_entry = '''INSERT INTO {table} (title) VALUES ("{parent}", "{name}");'''.format(
+                            table=os.path.basename(root).replace(' ', '_'),
+                            group_id=self.__db_key(root=root, dirs=dirs),
+                            name=f.replace(' ', '_'))
+                        cursor.execute(query_entry)
         data.commit()
         return
 
