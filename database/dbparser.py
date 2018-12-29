@@ -11,7 +11,7 @@ class DbParser:
     def __init__(self, config):
         self.config = config
         self.db_path = config.get(header='database_path')[0][1] + "/catalog.db"
-        self.data = self.populate(data=self.db_path)
+        self.data = self.__load_database()
 
     def __load_database(self):
         if os.path.exists(self.db_path):
@@ -76,18 +76,25 @@ class DbParser:
         else:
             return root.split('/')[-2]
 
+    """
     def populate(self, data):
+
         sqltable = SqliteDict(data, autocommit=True)
+
         for root, dirs, files in os.walk(self.config.get('database_library')[0][1]):
-            sqltable[os.path.basename(root)] = None
-        for f in files:
-            if f[0] is not '.':
-                sqltable[f] = None
+            gfields = {'id': None, 'parent': self.__db_key(root=root), 'name': None}
+            ffields = {'id': None, 'parent': self.__db_key(root=root), 'group': None, 'title': None,
+                       'duration': None, 'format': None, 'artist': None, 'released': None, 'cover': None}
+            for d in dirs:
+                sqltable[d] = gfields
 
-        for key, value in sqltable.iteritems():
-            print(key)
-            print(value)
+            for f in files:
+                if f[0] is not '.':
+                    sqltable[os.path.basename(root)][f] = ffields
 
+
+
+        print(self.config._flatten(sqltable))
         return sqltable
 
     """
@@ -99,35 +106,58 @@ class DbParser:
             if parent:
                 query_table = '''CREATE TABLE IF NOT EXISTS {table} (id INTEGER, pid VARCHAR (15) PRIMARY KEY, 
                 title VARCHAR (30), duration TIME, format VARCHAR (10), artist VARCHAR (20), cat VARCHAR (15),
-                released year, art VARCHAR (20));'''.format(table=os.path.basename(root).replace(' ', '_'))
+                released year, cover VARCHAR (20));'''.format(table=os.path.basename(root).replace(' ', '_'))
+
+                cursor.execute(query_table)
+
+                for d in dirs:
+                    query_entry = '''INSERT INTO {table} (pid, cat) VALUES ("{pid}", "{cat}");'''.format(
+                        table=os.path.basename(root).replace(' ', '_'), pid=d,
+                        cat=d)
+                    cursor.execute(query_entry)
+
+                for f in files:
+                    if f[0] is not '.':
+                        query_entry = '''INSERT INTO {table} (pid, title, cat) VALUES ("{pid}", "{title}", "{cat}");'''.format(
+                            table=os.path.basename(root).replace(' ', '_'),
+                            title=f.replace(' ', '_'), pid=f.replace(' ', '_'), cat=os.path.basename(root))
+                        cursor.execute(query_entry)
+
+                """
+                query_entry = ''' INSERT INTO {table} (pid, cat) VALUES ("{pid}", "{cat}");
+                '''.format(table=os.path.basename(root).replace(' ', '_'),
+                           pid=os.path.basename(root).replace(' ', '_'), cat=os.path.basename(root).replace(' ', '_'))
+
+                cursor.execute(query_entry)
+                """
 
                 parent = False
             else:
                 query_table = '''CREATE TABLE IF NOT EXISTS {table} (id INTEGER PRIMARY KEY, pid VARCHAR (15), 
                                     title VARCHAR (30), duration TIME, format VARCHAR (10), artist VARCHAR (20), 
                                     released year, art VARCHAR (20), group_id INTEGER, cat VARCHAR (15),
-                                    FOREIGN KEY (pid) REFERENCES {pid} (parent));'''.format(
-                    table=os.path.basename(root).replace(' ', '_'), pid=self.__db_key(root=root, parent=parent))
+                                    FOREIGN KEY (pid) REFERENCES {pid} (pid));
+                                    '''.format(table=os.path.basename(root).replace(' ', '_'),
+                                               pid=self.__db_key(root=root, parent=parent))
 
-            cursor.execute(query_table)
+                cursor.execute(query_table)
 
-            for d in dirs:
-                query_link = '''INSERT INTO {table} (pid, cat) VALUES ("{pid}", "{cat}");'''.format(
-                    table=os.path.basename(root).replace(' ', '_'), pid=self.__db_key(root=root, parent=parent), cat=d)
+                for d in dirs:
+                    query_link = '''INSERT INTO {table} (pid, cat) VALUES ("{pid}", "{cat}");'''.format(
+                        table=os.path.basename(root).replace(' ', '_'), pid=self.__db_key(root=root, parent=parent),
+                        cat=d)
 
-                cursor.execute(query_link)
+                    cursor.execute(query_link)
 
-            for f in files:
-                if f[0] is not '.':
-                    query_entry = '''INSERT INTO {table} (pid, title) VALUES ("{pid}", "{title}");'''.format(
-                        table=os.path.basename(root).replace(' ', '_'),
-                        title=f.replace(' ', '_'), pid=self.__db_key(root=root, parent=parent))
-                    cursor.execute(query_entry)
+                for f in files:
+                    if f[0] is not '.':
+                        query_entry = '''INSERT INTO {table} (pid, title) VALUES ("{pid}", "{title}");'''.format(
+                            table=os.path.basename(root).replace(' ', '_'),
+                            title=f.replace(' ', '_'), pid=self.__db_key(root=root, parent=parent))
+                        cursor.execute(query_entry)
 
         data.commit()
         return
-
-    """
 
     def list_files(self, startpath):
         for root, dirs, files in os.walk(startpath):
