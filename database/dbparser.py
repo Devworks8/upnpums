@@ -76,29 +76,6 @@ class DbParser:
         else:
             return root.split('/')[-2]
 
-    """
-    def populate(self, data):
-
-        sqltable = SqliteDict(data, autocommit=True)
-
-        for root, dirs, files in os.walk(self.config.get('database_library')[0][1]):
-            gfields = {'id': None, 'parent': self.__db_key(root=root), 'name': None}
-            ffields = {'id': None, 'parent': self.__db_key(root=root), 'group': None, 'title': None,
-                       'duration': None, 'format': None, 'artist': None, 'released': None, 'cover': None}
-            for d in dirs:
-                sqltable[d] = gfields
-
-            for f in files:
-                if f[0] is not '.':
-                    sqltable[os.path.basename(root)][f] = ffields
-
-
-
-        print(self.config._flatten(sqltable))
-        return sqltable
-
-    """
-
     def populate(self, data, cursor):
         parent = True
 
@@ -118,42 +95,34 @@ class DbParser:
 
                 for f in files:
                     if f[0] is not '.':
-                        query_entry = '''INSERT INTO {table} (pid, title, cat) VALUES ("{pid}", "{title}", "{cat}");'''.format(
-                            table=os.path.basename(root).replace(' ', '_'),
-                            title=f.replace(' ', '_'), pid=f.replace(' ', '_'), cat=os.path.basename(root))
+                        query_entry = '''INSERT INTO {table} (pid, title, cat) VALUES ("{pid}", "{title}", "{cat}");
+                        '''.format(table=os.path.basename(root).replace(' ', '_'), title=f.replace(' ', '_'),
+                                   pid=f.replace(' ', '_'), cat=os.path.basename(root))
                         cursor.execute(query_entry)
-
-                """
-                query_entry = ''' INSERT INTO {table} (pid, cat) VALUES ("{pid}", "{cat}");
-                '''.format(table=os.path.basename(root).replace(' ', '_'),
-                           pid=os.path.basename(root).replace(' ', '_'), cat=os.path.basename(root).replace(' ', '_'))
-
-                cursor.execute(query_entry)
-                """
 
                 parent = False
             else:
                 query_table = '''CREATE TABLE IF NOT EXISTS {table} (id INTEGER PRIMARY KEY, pid VARCHAR (15), 
                                     title VARCHAR (30), duration TIME, format VARCHAR (10), artist VARCHAR (20), 
-                                    released year, art VARCHAR (20), group_id INTEGER, cat VARCHAR (15),
-                                    FOREIGN KEY (pid) REFERENCES {pid} (pid));
+                                    released year, art VARCHAR (20), group_id VARCHAR (15), cat VARCHAR (15),
+                                    FOREIGN KEY (group_id) REFERENCES {pid} (pid));
                                     '''.format(table=os.path.basename(root).replace(' ', '_'),
-                                               pid=self.__db_key(root=root, parent=parent))
+                                               pid=self.__db_key(root=root, parent=False))
 
                 cursor.execute(query_table)
 
                 for d in dirs:
-                    query_link = '''INSERT INTO {table} (pid, cat) VALUES ("{pid}", "{cat}");'''.format(
-                        table=os.path.basename(root).replace(' ', '_'), pid=self.__db_key(root=root, parent=parent),
+                    query_link = '''INSERT INTO {table} (group_id, cat) VALUES ("{group_id}", "{cat}");'''.format(
+                        table=os.path.basename(root).replace(' ', '_'), group_id=self.__db_key(root=root, parent=False),
                         cat=d)
 
                     cursor.execute(query_link)
 
                 for f in files:
                     if f[0] is not '.':
-                        query_entry = '''INSERT INTO {table} (pid, title) VALUES ("{pid}", "{title}");'''.format(
-                            table=os.path.basename(root).replace(' ', '_'),
-                            title=f.replace(' ', '_'), pid=self.__db_key(root=root, parent=parent))
+                        query_entry = '''INSERT INTO {table} (group_id, title) VALUES ("{group_id}", "{title}");
+                        '''.format(table=os.path.basename(root).replace(' ', '_'), title=f.replace(' ', '_'),
+                                   group_id=self.__db_key(root=root, parent=False))
                         cursor.execute(query_entry)
 
         data.commit()
