@@ -1,9 +1,11 @@
 import os.path
+import sndhdr
 
 from m3u8 import *
 from m3u8_generator import *
 from sqlite3.dbapi2 import *
 from mutagen.id3 import ID3
+import mutagen
 
 
 class DbParser:
@@ -34,27 +36,6 @@ class DbParser:
         :return:
         """
         self.populate(data=data, cursor=cursor)
-
-    def del_table(self, table):
-        cursor = self.data.cursor()
-        try:
-            cursor.execute('''DROP TABLE {}'''.format(table))
-            return
-
-        except:
-            print("{} table not found.".format(table))
-            return
-
-    def add_file(self, table, file=None):
-        cursor = self.data.cursor()
-
-        if file:
-            query = """INSERT INTO {table} (name) VALUES ("{file}");""".format(table=table, file=file)
-        else:
-            query = """INSERT INTO {table} (name) VALUES ("file");""".format(table=table)
-
-        cursor.execute(query)
-        self.data.commit()
 
     def __db_key(self, root, parent):
         """
@@ -128,9 +109,31 @@ class DbParser:
                         '''.format(table=os.path.basename(root).replace(' ', '_'), title=f.replace(' ', '_'),
                                    group_id=self.__db_key(root=root, parent=False), category=os.path.basename(root))
                         cursor.execute(query_entry)
+                        print(self.__identify_media(root=root, file=f))
 
         data.commit()
         return
+
+    def del_table(self, table):
+        cursor = self.data.cursor()
+        try:
+            cursor.execute('''DROP TABLE {}'''.format(table))
+            return
+
+        except:
+            print("{} table not found.".format(table))
+            return
+
+    def add_file(self, table, file=None):
+        cursor = self.data.cursor()
+
+        if file:
+            query = """INSERT INTO {table} (name) VALUES ("{file}");""".format(table=table, file=file)
+        else:
+            query = """INSERT INTO {table} (name) VALUES ("file");""".format(table=table)
+
+        cursor.execute(query)
+        self.data.commit()
 
     def cleanup(self):
         """
@@ -138,3 +141,16 @@ class DbParser:
         :return:
         """
         self.data.close()
+
+    def __identify_media(self, root, file):
+
+        try:
+            # ftype = mutagen.FileType(filething=mutagen.File(root + '/' + file))
+            ftype = sndhdr.what(os.path.join(root, file))
+            print(os.path.join(root, file))
+            print(ftype)
+        except:
+            return 'Fail'
+
+    def fetch_ID3(self, file):
+        pass
