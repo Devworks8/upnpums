@@ -6,6 +6,7 @@ from m3u8_generator import *
 from sqlite3.dbapi2 import *
 from mutagen.id3 import ID3
 import mutagen
+from pymediainfo import MediaInfo
 
 
 class DbParser:
@@ -64,41 +65,50 @@ class DbParser:
 
         for root, dirs, files in os.walk(self.config.get('database_library')[0][1]):
             if parent:
-                query_table = '''CREATE TABLE IF NOT EXISTS {table} (group_id VARCHAR (15) PRIMARY KEY, id INTEGER, 
-                category VARCHAR (15), title VARCHAR (30), duration TIME, format VARCHAR (10), artist VARCHAR (20), 
-                released year, cover VARCHAR (20));'''.format(table=os.path.basename(root).replace(' ', '_'))
+                query_table = '''CREATE TABLE IF NOT EXISTS {table} (group_id VARCHAR (50) PRIMARY KEY, id INTEGER, 
+                category VARCHAR (50), title VARCHAR (30), duration TIME, format VARCHAR (10), artist VARCHAR (20), 
+                released year, cover VARCHAR (20));
+                '''.format(table=os.path.basename(root).replace(' ', '_').replace('-', '_').replace('#', ''))
 
                 cursor.execute(query_table)
 
                 for d in dirs:
                     query_entry = '''INSERT INTO {table} (group_id, category) VALUES ("{group_id}", "{category}");
-                    '''.format(table=os.path.basename(root).replace(' ', '_'), group_id=d.replace(' ', '_'),
-                               category=os.path.basename(root))
+                    '''.format(table=os.path.basename(root).replace(' ', '_').replace('-', '_').replace('#', ''),
+                               group_id=d.replace(' ', '_').replace('-', '_').replace('#', ''),
+                               category=os.path.basename(root).replace(' ', '_').replace('-', '_').replace('#', ''))
                     cursor.execute(query_entry)
 
                 for f in files:
                     if f[0] is not '.':
                         query_entry = '''INSERT INTO {table} (group_id, title, category) 
                         VALUES ("{group_id}", "{title}", "{category}");
-                        '''.format(table=os.path.basename(root).replace(' ', '_'), title=f.replace(' ', '_'),
-                                   group_id=f.replace(' ', '_'), category=os.path.basename(root))
+                        '''.format(table=os.path.basename(root).replace(' ', '_').replace('-', '_').replace('#', ''),
+                                   title=f.replace(' ', '_').replace('-', '_').replace('#', ''),
+                                   group_id=f.replace(' ', '_').replace('-', '_').replace('#', ''),
+                                   category=os.path.basename(root).replace(' ', '_').replace('-', '_').replace('#', ''))
                         cursor.execute(query_entry)
 
                 parent = False
             else:
-                query_table = '''CREATE TABLE IF NOT EXISTS {table} (id INTEGER, group_id VARCHAR (15), 
-                                     category VARCHAR (15), title VARCHAR (30) PRIMARY KEY, duration TIME, 
+                query_table = '''CREATE TABLE IF NOT EXISTS {table} (id INTEGER, group_id VARCHAR (50), 
+                                     category VARCHAR (50), title VARCHAR (30) PRIMARY KEY, duration TIME, 
                                     format VARCHAR (10), artist VARCHAR (20), released year, cover VARCHAR (20),
                                     FOREIGN KEY (group_id) REFERENCES {group_id} (group_id));
-                                    '''.format(table=os.path.basename(root).replace(' ', '_'),
-                                               group_id=self.__db_key(root=root, parent=False))
+                                    '''.format(
+                    table=os.path.basename(root).replace(' ', '_').replace('-', '_').replace('#', ''),
+                    group_id=self.__db_key(root=root, parent=False).replace(' ', '_').replace('-', '_').replace('#',
+                                                                                                                ''))
 
                 cursor.execute(query_table)
 
                 for d in dirs:
                     query_link = '''INSERT INTO {table} (group_id, category) VALUES ("{group_id}", "{category}");
-                    '''.format(table=os.path.basename(root).replace(' ', '_'),
-                               group_id=self.__db_key(root=root, parent=False), category=d)
+                    '''.format(table=os.path.basename(root).replace(' ', '_').replace('#', ''),
+                               group_id=self.__db_key(root=root, parent=False).replace(' ', '_').replace('-',
+                                                                                                         '_').replace(
+                                   '#', ''),
+                               category=d.replace(' ', '_').replace('-', '_').replace('#', ''))
 
                     cursor.execute(query_link)
 
@@ -106,10 +116,14 @@ class DbParser:
                     if f[0] is not '.':
                         query_entry = '''INSERT INTO {table} (group_id, title, category) 
                         VALUES ("{group_id}", "{title}", "{category}");
-                        '''.format(table=os.path.basename(root).replace(' ', '_'), title=f.replace(' ', '_'),
-                                   group_id=self.__db_key(root=root, parent=False), category=os.path.basename(root))
+                        '''.format(table=os.path.basename(root).replace(' ', '_').replace('-', '_').replace('#', ''),
+                                   title=f.replace(' ', '_').replace('-', '_').replace('#', ''),
+                                   group_id=self.__db_key(root=root, parent=False).replace(' ', '_').replace('-',
+                                                                                                             '_').replace(
+                                       '#', ''),
+                                   category=os.path.basename(root).replace(' ', '_').replace('-', '_').replace('#', ''))
                         cursor.execute(query_entry)
-                        print(self.__identify_media(root=root, file=f))
+                        print(self.fetch_ID3(root=root, file=f))
 
         data.commit()
         return
@@ -145,12 +159,22 @@ class DbParser:
     def __identify_media(self, root, file):
 
         try:
-            # ftype = mutagen.FileType(filething=mutagen.File(root + '/' + file))
             ftype = sndhdr.what(os.path.join(root, file))
-            print(os.path.join(root, file))
-            print(ftype)
-        except:
-            return 'Fail'
+            print(root)
+            print(file)
+            print(os.getcwd())
 
-    def fetch_ID3(self, file):
-        pass
+            mi = MediaInfo.parse('{}'.format(os.path.join(root, file)))
+            if ftype.filetype is 'wav':
+                # print(ftype.filetype)
+                print(mi)
+                return ftype
+            else:
+                # print(ftype.filetype)
+                print(mi)
+                return ftype
+        except Exception as e:
+            return print(e)
+
+    def fetch_ID3(self, root, file):
+        return self.__identify_media(root=root, file=file)
