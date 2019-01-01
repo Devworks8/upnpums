@@ -6,7 +6,6 @@ from m3u8_generator import *
 from sqlite3.dbapi2 import *
 from mutagen.id3 import ID3
 import mutagen
-from pymediainfo import MediaInfo
 
 
 class DbParser:
@@ -160,18 +159,12 @@ class DbParser:
 
         try:
             ftype = sndhdr.what(os.path.join(root, file))
-            print(root)
-            print(file)
-            print(os.getcwd())
 
-            mi = MediaInfo.parse('{}'.format(os.path.join(root, file)))
             if ftype.filetype is 'wav':
-                # print(ftype.filetype)
-                print(mi)
+                print(ftype.filetype)
                 return ftype
             else:
-                # print(ftype.filetype)
-                print(mi)
+                print(ftype.filetype)
                 return ftype
         except Exception as e:
             return print(e)
