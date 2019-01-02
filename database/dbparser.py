@@ -96,12 +96,18 @@ class DbParser:
 
                 for f in files:
                     if f[0] is not '.':
-                        query_entry = '''INSERT INTO {table} (group_id, title, category) 
-                        VALUES ("{group_id}", "{title}", "{category}");
+                        tag = self.fetch_Tags(root=root, file=f)
+                        query_entry = '''INSERT INTO {table} (group_id, title, category, format, frame_rate, channels, 
+                        total_frames, sample_width) 
+                        VALUES ("{group_id}", "{title}", "{category}", "{format}", "{frame_rate}", "{channels}", 
+                        "{total_frames}", "{sample_width}");
                         '''.format(table=self.__validate_string(os.path.basename(root)),
                                    title=self.__validate_string(f),
                                    group_id=self.__validate_string(f),
-                                   category=self.__validate_string(os.path.basename(root)))
+                                   category=self.__validate_string(os.path.basename(root)),
+                                   format=tag.filetype, frame_rate=tag.framerate, channels=tag.nchannels,
+                                   total_frames=tag.nframes, sample_width=tag.sampwidth
+                                   )
                         cursor.execute(query_entry)
 
                 parent = False
@@ -126,14 +132,18 @@ class DbParser:
 
                 for f in files:
                     if f[0] is not '.':
-                        query_entry = '''INSERT INTO {table} (group_id, title, category) 
-                        VALUES ("{group_id}", "{title}", "{category}");
+                        tag = self.fetch_Tags(root=root, file=f)
+                        query_entry = '''INSERT INTO {table} (group_id, title, category, format, frame_rate, channels, 
+                        total_frames, sample_width) 
+                        VALUES ("{group_id}", "{title}", "{category}", "{format}", "{frame_rate}", "{channels}", 
+                        "{total_frames}", "{sample_width}");
                         '''.format(table=self.__validate_string(os.path.basename(root)),
                                    title=self.__validate_string(f),
                                    group_id=self.__validate_string(self.__db_key(root=root, parent=False)),
-                                   category=self.__validate_string(os.path.basename(root)))
+                                   category=self.__validate_string(os.path.basename(root)),
+                                   format=tag.filetype, frame_rate=tag.framerate, channels=tag.nchannels,
+                                   total_frames=tag.nframes, sample_width=tag.sampwidth)
                         cursor.execute(query_entry)
-                        print(self.fetch_Tags(root=root, file=f))
 
         data.commit()
         return
