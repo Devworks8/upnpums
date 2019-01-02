@@ -53,6 +53,21 @@ class DbParser:
         else:
             return root.split('/')[-2]
 
+    def __validate_string(self, string):
+        """
+        Removes all invalid characters for sql injection.
+        :param string: String
+        :return: String
+        """
+        restricted = {'': ['#'], '_': [' ', '-']}
+        results = string
+
+        for k, v in restricted.items():
+            for char in v:
+                results = results.replace(char, k)
+
+        return results
+
     def populate(self, data, cursor):
         """
         Dynamically create a database using the library directory structure.
@@ -66,48 +81,46 @@ class DbParser:
             if parent:
                 query_table = '''CREATE TABLE IF NOT EXISTS {table} (group_id VARCHAR (50) PRIMARY KEY, id INTEGER, 
                 category VARCHAR (50), title VARCHAR (30), duration TIME, format VARCHAR (10), artist VARCHAR (20), 
-                released year, cover VARCHAR (20));
-                '''.format(table=os.path.basename(root).replace(' ', '_').replace('-', '_').replace('#', ''))
+                released year, cover VARCHAR (20), frame_rate DOUBLE, channels INTEGER, 
+                total_frames DOUBLE, sample_width INTEGER);
+                '''.format(table=self.__validate_string(os.path.basename(root)))
 
                 cursor.execute(query_table)
 
                 for d in dirs:
                     query_entry = '''INSERT INTO {table} (group_id, category) VALUES ("{group_id}", "{category}");
-                    '''.format(table=os.path.basename(root).replace(' ', '_').replace('-', '_').replace('#', ''),
-                               group_id=d.replace(' ', '_').replace('-', '_').replace('#', ''),
-                               category=os.path.basename(root).replace(' ', '_').replace('-', '_').replace('#', ''))
+                    '''.format(table=self.__validate_string(os.path.basename(root)),
+                               group_id=self.__validate_string(d),
+                               category=self.__validate_string(os.path.basename(root)))
                     cursor.execute(query_entry)
 
                 for f in files:
                     if f[0] is not '.':
                         query_entry = '''INSERT INTO {table} (group_id, title, category) 
                         VALUES ("{group_id}", "{title}", "{category}");
-                        '''.format(table=os.path.basename(root).replace(' ', '_').replace('-', '_').replace('#', ''),
-                                   title=f.replace(' ', '_').replace('-', '_').replace('#', ''),
-                                   group_id=f.replace(' ', '_').replace('-', '_').replace('#', ''),
-                                   category=os.path.basename(root).replace(' ', '_').replace('-', '_').replace('#', ''))
+                        '''.format(table=self.__validate_string(os.path.basename(root)),
+                                   title=self.__validate_string(f),
+                                   group_id=self.__validate_string(f),
+                                   category=self.__validate_string(os.path.basename(root)))
                         cursor.execute(query_entry)
 
                 parent = False
             else:
                 query_table = '''CREATE TABLE IF NOT EXISTS {table} (id INTEGER, group_id VARCHAR (50), 
                                      category VARCHAR (50), title VARCHAR (30) PRIMARY KEY, duration TIME, 
-                                    format VARCHAR (10), artist VARCHAR (20), released year, cover VARCHAR (20),
+                                    format VARCHAR (10), artist VARCHAR (20), released year, cover VARCHAR (20), 
+                                    frame_rate DOUBLE, channels INTEGER, total_frames DOUBLE, sample_width INTEGER,
                                     FOREIGN KEY (group_id) REFERENCES {group_id} (group_id));
-                                    '''.format(
-                    table=os.path.basename(root).replace(' ', '_').replace('-', '_').replace('#', ''),
-                    group_id=self.__db_key(root=root, parent=False).replace(' ', '_').replace('-', '_').replace('#',
-                                                                                                                ''))
+                                    '''.format(table=self.__validate_string(os.path.basename(root)),
+                                               group_id=self.__validate_string(self.__db_key(root=root, parent=False)))
 
                 cursor.execute(query_table)
 
                 for d in dirs:
                     query_link = '''INSERT INTO {table} (group_id, category) VALUES ("{group_id}", "{category}");
-                    '''.format(table=os.path.basename(root).replace(' ', '_').replace('#', ''),
-                               group_id=self.__db_key(root=root, parent=False).replace(' ', '_').replace('-',
-                                                                                                         '_').replace(
-                                   '#', ''),
-                               category=d.replace(' ', '_').replace('-', '_').replace('#', ''))
+                    '''.format(table=self.__validate_string(os.path.basename(root)),
+                               group_id=self.__validate_string(self.__db_key(root=root, parent=False)),
+                               category=self.__validate_string(d))
 
                     cursor.execute(query_link)
 
@@ -115,14 +128,12 @@ class DbParser:
                     if f[0] is not '.':
                         query_entry = '''INSERT INTO {table} (group_id, title, category) 
                         VALUES ("{group_id}", "{title}", "{category}");
-                        '''.format(table=os.path.basename(root).replace(' ', '_').replace('-', '_').replace('#', ''),
-                                   title=f.replace(' ', '_').replace('-', '_').replace('#', ''),
-                                   group_id=self.__db_key(root=root, parent=False).replace(' ', '_').replace('-',
-                                                                                                             '_').replace(
-                                       '#', ''),
-                                   category=os.path.basename(root).replace(' ', '_').replace('-', '_').replace('#', ''))
+                        '''.format(table=self.__validate_string(os.path.basename(root)),
+                                   title=self.__validate_string(f),
+                                   group_id=self.__validate_string(self.__db_key(root=root, parent=False)),
+                                   category=self.__validate_string(os.path.basename(root)))
                         cursor.execute(query_entry)
-                        print(self.fetch_ID3(root=root, file=f))
+                        print(self.fetch_Tags(root=root, file=f))
 
         data.commit()
         return
@@ -169,5 +180,5 @@ class DbParser:
         except Exception as e:
             return print(e)
 
-    def fetch_ID3(self, root, file):
+    def fetch_Tags(self, root, file):
         return self.__identify_media(root=root, file=file)
