@@ -13,7 +13,7 @@ from datetime import time
 class DbParser:
     def __init__(self, config):
         self.config = config
-        self.db_path = config.get(header='database_path')[0][1] + "/catalog.db"
+        self.db_path = config.get(header='database_path')[0][1]
         self.data = self.__load_database()
 
     def __load_database(self):
@@ -25,7 +25,8 @@ class DbParser:
             data = connect(self.db_path)
             self.cursor = data.cursor()
         else:
-            data = connect(self.db_path)
+            os.mkdir(self.db_path)
+            data = connect(self.db_path + "/catalog.db")
             self.cursor = data.cursor()
             self.__setup_database(data=data, cursor=self.cursor)
         return data

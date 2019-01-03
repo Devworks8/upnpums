@@ -37,8 +37,8 @@ class CfgManager:
         """
         defaults = """
         database:
-            path: './upnpums/data'
-            library: './library'
+            path: './data'
+            library: '../library'
         m3u8:
             path: None
         interface:

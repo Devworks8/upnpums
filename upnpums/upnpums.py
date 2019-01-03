@@ -11,9 +11,9 @@ Christian Lachapelle & Jason Major
 ################################
 import sys
 
-from upnpums.config.configure import *
-from upnpums.database.dbparser import *
-from upnpums.shell.commandmanager import *
+from config.configure import *
+from database.dbparser import *
+from shell.commandmanager import *
 
 __VERSION__ = "0.1"
 
