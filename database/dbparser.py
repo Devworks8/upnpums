@@ -5,7 +5,8 @@ from m3u8 import *
 from m3u8_generator import *
 from sqlite3.dbapi2 import *
 from mutagen.id3 import ID3
-import mutagen
+import audioread
+from datetime import time
 
 
 class DbParser:
@@ -82,7 +83,7 @@ class DbParser:
                 query_table = '''CREATE TABLE IF NOT EXISTS {table} (group_id VARCHAR (50) PRIMARY KEY, id INTEGER, 
                 category VARCHAR (50), title VARCHAR (30), duration TIME, format VARCHAR (10), artist VARCHAR (20), 
                 released year, cover VARCHAR (20), frame_rate DOUBLE, channels INTEGER, 
-                total_frames DOUBLE, sample_width INTEGER);
+                total_frames DOUBLE, sample_width INTEGER, path VARCHAR (50));
                 '''.format(table=self.__validate_string(os.path.basename(root)))
 
                 cursor.execute(query_table)
@@ -96,18 +97,21 @@ class DbParser:
 
                 for f in files:
                     if f[0] is not '.':
-                        tag = self.fetch_Tags(root=root, file=f)
-                        query_entry = '''INSERT INTO {table} (group_id, title, category, format, frame_rate, channels, 
-                        total_frames, sample_width) 
-                        VALUES ("{group_id}", "{title}", "{category}", "{format}", "{frame_rate}", "{channels}", 
-                        "{total_frames}", "{sample_width}");
+                        query_entry = '''INSERT INTO {table} (group_id, title, category, duration, format, frame_rate, 
+                        channels, total_frames, sample_width, path) 
+                        VALUES ("{group_id}", "{title}", "{category}",  "{duration}", "{format}", "{frame_rate}", 
+                        "{channels}", "{total_frames}", "{sample_width}", "{path}");
                         '''.format(table=self.__validate_string(os.path.basename(root)),
                                    title=self.__validate_string(f),
                                    group_id=self.__validate_string(f),
                                    category=self.__validate_string(os.path.basename(root)),
-                                   format=tag.filetype, frame_rate=tag.framerate, channels=tag.nchannels,
-                                   total_frames=tag.nframes, sample_width=tag.sampwidth
-                                   )
+                                   duration=self.fetch_tags(root=root, file=f, field='duration'),
+                                   format=self.fetch_tags(root=root, file=f, field='filetype'),
+                                   frame_rate=self.fetch_tags(root=root, file=f, field='framerate'),
+                                   channels=self.fetch_tags(root=root, file=f, field='nchannels'),
+                                   total_frames=self.fetch_tags(root=root, file=f, field='nframes'),
+                                   sample_width=self.fetch_tags(root=root, file=f, field='sampwidth'),
+                                   path=os.path.join(root, f))
                         cursor.execute(query_entry)
 
                 parent = False
@@ -115,7 +119,8 @@ class DbParser:
                 query_table = '''CREATE TABLE IF NOT EXISTS {table} (id INTEGER, group_id VARCHAR (50), 
                                      category VARCHAR (50), title VARCHAR (30) PRIMARY KEY, duration TIME, 
                                     format VARCHAR (10), artist VARCHAR (20), released year, cover VARCHAR (20), 
-                                    frame_rate DOUBLE, channels INTEGER, total_frames DOUBLE, sample_width INTEGER,
+                                    frame_rate DOUBLE, channels INTEGER, total_frames DOUBLE, sample_width INTEGER, 
+                                    path VARCHAR (50),
                                     FOREIGN KEY (group_id) REFERENCES {group_id} (group_id));
                                     '''.format(table=self.__validate_string(os.path.basename(root)),
                                                group_id=self.__validate_string(self.__db_key(root=root, parent=False)))
@@ -132,17 +137,21 @@ class DbParser:
 
                 for f in files:
                     if f[0] is not '.':
-                        tag = self.fetch_Tags(root=root, file=f)
-                        query_entry = '''INSERT INTO {table} (group_id, title, category, format, frame_rate, channels, 
-                        total_frames, sample_width) 
-                        VALUES ("{group_id}", "{title}", "{category}", "{format}", "{frame_rate}", "{channels}", 
-                        "{total_frames}", "{sample_width}");
+                        query_entry = '''INSERT INTO {table} (group_id, title, category, duration, format, frame_rate, 
+                        channels, total_frames, sample_width, path) 
+                        VALUES ("{group_id}", "{title}", "{category}", "{duration}", "{format}", "{frame_rate}", 
+                        "{channels}", "{total_frames}", "{sample_width}", "{path}");
                         '''.format(table=self.__validate_string(os.path.basename(root)),
                                    title=self.__validate_string(f),
                                    group_id=self.__validate_string(self.__db_key(root=root, parent=False)),
                                    category=self.__validate_string(os.path.basename(root)),
-                                   format=tag.filetype, frame_rate=tag.framerate, channels=tag.nchannels,
-                                   total_frames=tag.nframes, sample_width=tag.sampwidth)
+                                   duration=self.fetch_tags(root=root, file=f, field='duration'),
+                                   format=self.fetch_tags(root=root, file=f, field='filetype'),
+                                   frame_rate=self.fetch_tags(root=root, file=f, field='framerate'),
+                                   channels=self.fetch_tags(root=root, file=f, field='nchannels'),
+                                   total_frames=self.fetch_tags(root=root, file=f, field='nframes'),
+                                   sample_width=self.fetch_tags(root=root, file=f, field='sampwidth'),
+                                   path=os.path.join(root, f))
                         cursor.execute(query_entry)
 
         data.commit()
@@ -177,18 +186,30 @@ class DbParser:
         self.data.close()
 
     def __identify_media(self, root, file):
-
         try:
-            ftype = sndhdr.what(os.path.join(root, file))
 
-            if ftype.filetype is 'wav':
-                print(ftype.filetype)
-                return ftype
-            else:
-                print(ftype.filetype)
-                return ftype
+            ftype = sndhdr.what(os.path.join(root, file))
+            return ftype
+
         except Exception as e:
             return print(e)
 
-    def fetch_Tags(self, root, file):
-        return self.__identify_media(root=root, file=file)
+    # TODO: format duration.
+    def _format_duration(self, durarion, result=time(0, 0, 0)):
+        result = result
+
+        return result
+
+    # TODO: complete tag extractions for artist, release date, cover art.
+    def fetch_tags(self, root, file, field):
+        tags = self.__identify_media(root=root, file=file)
+        if tags:
+            if field is 'duration':
+                with audioread.audio_open(os.path.join(root, file)) as f:
+                    # duration = self._format_duration(duration=f.duration)
+                    # return duration
+                    return f.duration
+            else:
+                return eval('tags.' + field)
+        else:
+            return 0
