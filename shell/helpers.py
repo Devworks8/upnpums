@@ -6,8 +6,12 @@ import getopt
 import readline
 
 
-# Show command help
 def showHelp(command):
+    """
+    Show command help.
+    :param command: Command name
+    :return: String
+    """
     # Detailed help info for each command
     helpInfo = {
         'help': {
@@ -175,8 +179,11 @@ def showHelp(command):
             print("%s\t\t%s" % (command, cmdHelp['quickView']))
 
 
-# Display usage
 def usage():
+    """
+    Display usage
+    :return: String
+    """
     print('''
 Command line usage: %s [OPTIONS]
 
@@ -192,8 +199,12 @@ Command line usage: %s [OPTIONS]
     sys.exit(1)
 
 
-# Toggle boolean values
 def toggleVal(val):
+    """
+    Toggle boolean values
+    :param val: Boolean
+    :return: Boolean
+    """
     if val:
         return False
 
@@ -201,8 +212,13 @@ def toggleVal(val):
         return True
 
 
-# Prompt for user input
 def getUserInput(hp, shellPrompt):
+    """
+    Prompt for user input
+    :param hp: Shell object
+    :param shellPrompt: Displayed prompt
+    :return:
+    """
     defaultShellPrompt = 'upnp> '
 
     if hp.BATCH_FILE is not None:
@@ -234,8 +250,12 @@ def getUserInput(hp, shellPrompt):
     return argc, argv
 
 
-# Reads scripted commands from a file
 def getFileInput(object):
+    """
+    Read scripted commands from a file.
+    :param object: File object
+    :return:
+    """
     data = False
     line = object.BATCH_FILE.readline()
 
@@ -254,5 +274,10 @@ def getFileInput(object):
 
 
 def cleanup(interface):
+    """
+    Close the log file if open.
+    :param interface: Shell object
+    :return:
+    """
     if interface.LOG_FILE:
         interface.LOG_FILE.close()

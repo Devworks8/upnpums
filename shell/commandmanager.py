@@ -42,6 +42,7 @@ class CmdCompleter:
         return
 
 
+# TODO: Complete error handling.
 class CmdManager(CmdCompleter):
     def __init__(self, config, db):
         self._db = db
@@ -60,12 +61,21 @@ class CmdManager(CmdCompleter):
         self.__setauto()
 
     def __cmdline(self):
-        # Set up tab completion and command history
+        """
+        Set up tab completion and command history
+        :return:
+        """
         readline.parse_and_bind("tab: complete")
         readline.set_completer(self.complete)
 
-    # Check command line options
     def __parseCliOpts(self, argc, argv, interface):
+        """
+        Check command line options.
+        :param argc: Argument count
+        :param argv: Argument list
+        :param interface: Network interface
+        :return:
+        """
         try:
             opts, args = getopt.getopt(argv[1:], 's:l:i:b:udvh')
 
@@ -150,11 +160,23 @@ class CmdManager(CmdCompleter):
                                 'Binding to interface %s failed; are you sure you have root privilages??' % interfaceName)
 
     def __setauto(self):
-        # The load command should auto complete on the contents of the current directory
+        """
+        The load command should auto complete on the contents of the current directory.
+        :return:
+        """
         for file in os.listdir(os.getcwd()):
             self.appCommands['load'][file] = None
 
     def start(self, argc, argv, interface, config, db):
+        """
+        Start the shell interface.
+        :param argc: Argument count
+        :param argv: Argument list
+        :param interface: Shell object
+        :param config: Config object
+        :param db: Database object
+        :return:
+        """
 
         # Check command line options
         self.__parseCliOpts(argc, argv, interface)

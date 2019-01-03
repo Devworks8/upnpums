@@ -1,14 +1,15 @@
 import os.path
 import sndhdr
+import audioread
 
 from m3u8 import *
 from m3u8_generator import *
 from sqlite3.dbapi2 import *
 from mutagen.id3 import ID3
-import audioread
 from datetime import time
 
 
+# TODO: Finish error handling.
 class DbParser:
     def __init__(self, config):
         self.config = config
@@ -157,6 +158,7 @@ class DbParser:
         data.commit()
         return
 
+    # TODO: Finish implementation of del_table()
     def del_table(self, table):
         cursor = self.data.cursor()
         try:
@@ -167,6 +169,7 @@ class DbParser:
             print("{} table not found.".format(table))
             return
 
+    # TODO: Finish implementation of add_file()
     def add_file(self, table, file=None):
         cursor = self.data.cursor()
 
@@ -186,6 +189,12 @@ class DbParser:
         self.data.close()
 
     def __identify_media(self, root, file):
+        """
+        Identify the media.
+        :param root: file's path
+        :param file: Media file.
+        :return: Named tuple
+        """
         try:
 
             ftype = sndhdr.what(os.path.join(root, file))

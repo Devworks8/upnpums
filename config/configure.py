@@ -10,6 +10,7 @@ except ImportError:
     from yaml import Loader, Dumper
 
 
+# TODO: Finish error handling.
 class CfgManager:
     def __init__(self):
         self.__DEFAULTS = self.__generate_defaults()
@@ -30,6 +31,10 @@ class CfgManager:
             return self._flatten(load(self.__DEFAULTS))
 
     def __generate_defaults(self):
+        """
+        default config file template.
+        :return: String
+        """
         defaults = """
         database:
             path: './data'
@@ -106,6 +111,10 @@ class CfgManager:
             return None
 
     def show_config(self):
+        """
+        Display current config.
+        :return: Yaml object
+        """
         return dump(self._inflate(self.settings), default_flow_style=False)
 
     def get(self, header=None):
