@@ -5,7 +5,6 @@ import time
 
 from shell.helpers import *
 
-
 # from shell.helpers import *
 
 upnpCommands = {

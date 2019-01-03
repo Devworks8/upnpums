@@ -1,9 +1,12 @@
+import os
+
 from shell.commands.common import *
 from shell.commands.upnp import *
 
-
 # Most of the CmdCompleter class was originally written by John Kenyan
 # It serves to tab-complete commands inside the program's shell
+
+
 class CmdCompleter:
     def __init__(self, commands):
         self.commands = commands

@@ -4,11 +4,9 @@ import xml.dom.minidom as minidom
 import urllib.request as urllib2
 import struct
 import select
-from twisted.internet.protocol import DatagramProtocol
-from twisted.internet import reactor
 from socket import *
 
-from shell.commandmanager import CmdManager
+from upnpums.shell.commandmanager import CmdManager
 
 
 # UPNP class for getting, sending and parsing SSDP/SOAP XML data (among other things...)
