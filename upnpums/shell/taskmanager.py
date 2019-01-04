@@ -3,6 +3,8 @@ import _thread
 import queue
 
 
+# TODO: Use process-based parallelism instead of threading.
+
 class TaskManager:
     def __init__(self):
         self.threadID = 1
