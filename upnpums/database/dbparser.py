@@ -6,7 +6,7 @@ from m3u8 import *
 from m3u8_generator import *
 from sqlite3.dbapi2 import *
 from mutagen.id3 import ID3
-from datetime import time
+from datetime import timedelta
 
 
 # TODO: Finish error handling.
@@ -21,12 +21,16 @@ class DbParser:
         Create database and cursor objects.
         :return: database object
         """
-        if os.path.exists(self.db_path):
-            data = connect(self.db_path)
+        if os.path.exists(os.path.join(self.db_path, "CATALOG")):
+            data = connect(os.path.join(self.db_path, "CATALOG"))
             self.cursor = data.cursor()
         else:
-            os.mkdir(self.db_path)
-            data = connect(self.db_path + "/catalog.db")
+            try:
+                os.mkdir(self.db_path)
+            except:
+                pass
+
+            data = connect(os.path.join(self.db_path, "CATALOG"))
             self.cursor = data.cursor()
             self.__setup_database(data=data, cursor=self.cursor)
         return data
@@ -204,11 +208,13 @@ class DbParser:
         except Exception as e:
             return print(e)
 
-    # TODO: format duration.
-    def _format_duration(self, durarion, result=time(0, 0, 0)):
-        result = result
-
-        return result
+    def _format_duration(self, durarion):
+        """
+        Converts seconds to H:M:S string
+        :param durarion: Duration in seconds
+        :return: 'H:M:S' formatted string
+        """
+        return timedelta(seconds=int(durarion))
 
     # TODO: complete tag extractions for artist, release date, cover art.
     def fetch_tags(self, root, file, field):
@@ -218,7 +224,7 @@ class DbParser:
                 with audioread.audio_open(os.path.join(root, file)) as f:
                     # duration = self._format_duration(duration=f.duration)
                     # return duration
-                    return f.duration
+                    return self._format_duration(f.duration)
             else:
                 return eval('tags.' + field)
         else:
