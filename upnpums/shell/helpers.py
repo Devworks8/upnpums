@@ -46,28 +46,31 @@ def showHelp(command):
         'save': {
             'longListing':
                 'Description:\n' \
-                '\tSaves current host information to disk.\n\n' \
+                '\tSaves current config/host information to disk.\n\n' \
                 'Usage:\n' \
-                '\t%s <data | info <host#>> [file prefix]\n' \
+                '\t%s <config | <data | info <host#>> [file prefix]>\n' \
                 "\tSpecifying 'data' will save the raw host data to a file suitable for importing later via 'load'\n" \
                 "\tSpecifying 'info' will save data for the specified host in a human-readable format\n" \
+                "\tSpecifying 'config' will save the current configuration to file\n" \
                 "\tSpecifying a file prefix will save files in for format of 'struct_[prefix].mir' and info_[prefix].mir\n\n" \
                 'Example:\n' \
                 '\t> save data wrt54g\n' \
-                '\t> save info 0 wrt54g\n\n' \
+                '\t> save info 0 wrt54g\n' \
+                '\t> save config\n\n' \
                 'Notes:\n' \
                 "\to Data files are saved as 'struct_[prefix].mir'; info files are saved as 'info_[prefix].mir.'\n" \
+                "\to Config files are saved as 'YAML struct [settings].yml.'\n" \
                 "\to If no prefix is specified, the host index number will be used for the prefix.\n" \
                 "\to The data saved by the 'save info' command is the same as the output of the 'host details' command.",
             'quickView':
-                'Save current host data to file'
+                'Save current config/host data to file'
         },
         'set': {
             'longListing':
                 'Description:\n' \
                 '\tAllows you  to view and edit application settings.\n\n' \
                 'Usage:\n' \
-                '\t%s <show | uniq | debug | verbose | version <version #> | iface <interface> | socket <ip:port> | timeout <seconds> | max <count> >\n' \
+                '\t%s <show | <config setting> | uniq | debug | verbose | version <version #> | iface <interface> | socket <ip:port> | timeout <seconds> | max <count> >\n' \
                 "\t'show' displays the current program settings\n" \
                 "\t'uniq' toggles the show-only-uniq-hosts setting when discovering UPNP devices\n" \
                 "\t'debug' toggles debug mode\n" \
@@ -76,10 +79,12 @@ def showHelp(command):
                 "\t'iface' changes the network interface in use\n" \
                 "\t'socket' re-sets the multicast IP address and port number used for UPNP discovery\n" \
                 "\t'timeout' sets the receive timeout period for the msearch and pcap commands (default: infinite)\n" \
-                "\t'max' sets the maximum number of hosts to locate during msearch and pcap discovery modes\n\n" \
+                "\t'max' sets the maximum number of hosts to locate during msearch and pcap discovery modes\n" \
+                "\t'<config setting>' change a config setting\n\n" \
                 'Example:\n' \
                 '\t> set socket 239.255.255.250:1900\n' \
-                '\t> set uniq\n\n' \
+                '\t> set uniq\n' \
+                '\t> set interface_ums_ip 255.255.255.255\n\n'
                 'Notes:\n' \
                 "\tIf given no options, 'set' will display help options",
             'quickView':
@@ -189,9 +194,6 @@ Command line usage: %s [OPTIONS]
 
 	-s <struct file>	Load previous host data from struct file
 	-l <log file>		Log user-supplied commands to log file
-	-i <interface>		Specify the name of the interface to use (Linux only, requires root)
-		-b <batch file>         Process commands from a file
-	-u			Disable show-uniq-hosts-only option
 	-d			Enable debug mode
 	-v			Enable verbose mode
 	-h 			Show help
@@ -281,3 +283,8 @@ def cleanup(interface):
     """
     if interface.LOG_FILE:
         interface.LOG_FILE.close()
+
+
+def notImplemented(command) -> None:
+    print("INFO: {command} not implemented.".format(command=command))
+    return
