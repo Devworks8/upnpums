@@ -47,7 +47,10 @@ upnpCommands = {
 
 
 # Actively search for UPNP devices
-def msearch(argc, argv, hp):
+def msearch(argc, argv, interface, config, db, taskmanagerp):
+    return notImplemented('upnp_msearch')
+
+    """
     defaultST = "upnp:rootdevice"
     st = "schemas-upnp-org"
     myip = ''
@@ -100,10 +103,14 @@ def msearch(argc, argv, hp):
         except Exception as e:
             print('\nDiscover mode halted...')
             break
+    """
 
 
 # Passively listen for UPNP NOTIFY packets
-def pcap(argc, argv, hp):
+def pcap(argc, argv, interface, config, db, taskmanagerp):
+    return notImplemented('upnp_pcap')
+
+    """
     print('Entering passive mode, Ctl+C to stop...')
     print('')
 
@@ -124,10 +131,14 @@ def pcap(argc, argv, hp):
         except Exception as e:
             print("\nPassive mode halted...")
             break
+    """
 
 
 # Manipulate M-SEARCH header values
-def head(argc, argv, hp):
+def head(argc, argv, interface, config, db, taskmanagerp):
+    return notImplemented('upnp_head')
+
+    """
     if argc >= 2:
         action = argv[1]
         # Show current headers
@@ -154,5 +165,5 @@ def head(argc, argv, hp):
                 hp.msearchHeaders[header] = value
                 print("Added header: '%s:%s" % (header, value))
                 return
-
+    """
     showHelp(argv[0])

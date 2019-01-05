@@ -42,20 +42,40 @@ commonCommands = {
 }
 
 
-def start(argc, argv, interface):
+def start(argc, argv, interface, config, db, taskmanager):
+    """
+    Start an interface
+    :param argc: argument count
+    :param argv: argument list
+    :param interface: interface object
+    :param config: config object
+    :param db: database object
+    :param taskmanager: task manager object
+    :return:
+    """
     if argv[1].lower() in interfaces:
         iface = eval(interfaces[argv[1].lower()] + "()")
         iface.start()
 
 
-def stop(argc, argv, interface):
+def stop(argc, argv, interface, config, db, taskmanager):
+    """
+        Stop an interface
+        :param argc: argument count
+        :param argv: argument list
+        :param interface: interface object
+        :param config: config object
+        :param db: database object
+        :param taskmanager: task manager object
+        :return:
+        """
     if argv[1].lower() in interfaces:
         iface = eval(interfaces[argv[1].lower()] + "()")
         iface.stop()
 
 
 # Manipulate application settings
-def set(argc, argv, interface, config, db):
+def set(argc, argv, interface, config, db, taskmanager):
     if argc >= 2:
         action = argv[1]
         if action == 'ums_ip':
@@ -164,7 +184,10 @@ def set(argc, argv, interface, config, db):
 
 
 # Host command. It's kind of big.
-def host(argc, argv, hp):
+def host(argc, argv, interface, config, db, taskmanagerp):
+    return notImplemented('host')
+
+    """
     hostInfo = None
     indexList = []
     indexError = "Host index out of range. Try the 'host list' command to get a list of known hosts"
@@ -172,17 +195,17 @@ def host(argc, argv, hp):
     if argc >= 2:
         action = argv[1]
         if action == 'list':
-            if len(hp.ENUM_HOSTS) == 0:
+            if len(interface.ENUM_HOSTS) == 0:
                 print("No known hosts - try running the 'msearch' or 'pcap' commands")
                 return
-            for index, hostInfo in hp.ENUM_HOSTS.items():
+            for index, hostInfo in interface.ENUM_HOSTS.items():
                 print("\t[%d] %s" % (index, hostInfo['name']))
             return
         elif action == 'details':
             if argc == 3:
                 try:
                     index = int(argv[2])
-                    hostInfo = hp.ENUM_HOSTS[index]
+                    hostInfo = interface.ENUM_HOSTS[index]
                 except Exception as e:
                     print(indexError)
                     return
@@ -190,7 +213,7 @@ def host(argc, argv, hp):
                 try:
                     # If this host data is already complete, just display it
                     if hostInfo['dataComplete']:
-                        hp.showCompleteHostInfo(index, False)
+                        interface.showCompleteHostInfo(index, False)
                     else:
                         print("Can't show host info because I don't have it. Please run 'host get %d'" % index)
                 except KeyboardInterrupt as e:
@@ -203,7 +226,7 @@ def host(argc, argv, hp):
 
                 try:
                     index = int(argv[2])
-                    hostInfo = hp.ENUM_HOSTS[index]
+                    hostInfo = interface.ENUM_HOSTS[index]
                 except:
                     print(indexError)
                     return
@@ -221,7 +244,7 @@ def host(argc, argv, hp):
                 return
 
         elif action == 'info':
-            output = hp.ENUM_HOSTS
+            output = interface.ENUM_HOSTS
             dataStructs = []
             for arg in argv[2:]:
                 try:
@@ -248,7 +271,7 @@ def host(argc, argv, hp):
             if argc == 3:
                 try:
                     index = int(argv[2])
-                    hostInfo = hp.ENUM_HOSTS[index]
+                    hostInfo = interface.ENUM_HOSTS[index]
                 except:
                     print(indexError)
                     return
@@ -266,15 +289,15 @@ def host(argc, argv, hp):
                                   hostInfo['name'])
                             print('')
                             if not hostInfo['dataComplete']:
-                                (xmlHeaders, xmlData) = hp.getXML(hostInfo['xmlFile'])
+                                (xmlHeaders, xmlData) = interface.getXML(hostInfo['xmlFile'])
                                 if not xmlData:
                                     print('Failed to request host XML file:', hostInfo['xmlFile'])
                                     return
-                                if not hp.getHostInfo(xmlData, xmlHeaders, index):
+                                if not interface.getHostInfo(xmlData, xmlHeaders, index):
                                     print("Failed to get device/service info for %s..." % hostInfo['name'])
                                     return
                             print('Host data enumeration complete!')
-                            hp.updateCmdCompleter(hp.ENUM_HOSTS)
+                            interface.updateCmdCompleter(interface.ENUM_HOSTS)
                             return
                     except KeyboardInterrupt as e:
                         print("")
@@ -291,7 +314,7 @@ def host(argc, argv, hp):
             else:
                 try:
                     index = int(argv[2])
-                    hostInfo = hp.ENUM_HOSTS[index]
+                    hostInfo = interface.ENUM_HOSTS[index]
                 except:
                     print(indexError)
                     return
@@ -345,7 +368,7 @@ def host(argc, argv, hp):
                         prompt = "\tSet %s value to: " % argName
                         try:
                             # Get user input for the argument value
-                            (argc, argv) = getUserInput(hp, prompt)
+                            (argc, argv) = getUserInput(interface, prompt)
                             if argv is None:
                                 print('Stopping send request...')
                                 return
@@ -379,22 +402,22 @@ def host(argc, argv, hp):
                     inArgCounter -= 1
 
                 # print 'Requesting',controlURL
-                soapResponse = hp.sendSOAP(hostInfo['name'], fullServiceName, controlURL, actionName, sendArgs)
+                soapResponse = interface.sendSOAP(hostInfo['name'], fullServiceName, controlURL, actionName, sendArgs)
                 if soapResponse:
                     # It's easier to just parse this ourselves...
                     for (tag, dataType) in retTags:
-                        tagValue = hp.extractSingleTag(soapResponse, tag)
+                        tagValue = interface.extractSingleTag(soapResponse, tag)
                         if dataType == 'bin.base64' and tagValue is not None:
                             tagValue = base64.decodebytes(tagValue)
                         print(tag, ':', tagValue)
             return
-
+    """
     showHelp(argv[0])
     return
 
 
 # Save data
-def save(argc, argv, interface, config, db):
+def save(argc, argv, interface, config, db, taskmanager):
     suffix = '%s_%s.mir'
     uniqName = ''
     saveType = ''
@@ -405,12 +428,17 @@ def save(argc, argv, interface, config, db):
             showHelp(argv[0])
             return
         elif argv[1] == 'data':
+            notImplemented('save_data')
+            """
             saveType = 'struct'
             if argc == 3:
                 index = argv[2]
             else:
                 index = 'data'
+            """
         elif argv[1] == 'info':
+            notImplemented('save_info')
+            """
             saveType = 'info'
             fnameIndex = 4
             if argc >= 3:
@@ -423,15 +451,19 @@ def save(argc, argv, interface, config, db):
             else:
                 showHelp(argv[0])
                 return
+            """
         elif argv[1] == 'config':
             config.save()
             print("Config saved.")
             return
 
         if argc == fnameIndex:
-            uniqName = argv[fnameIndex - 1]
+            notImplemented('save_fnameIndex')
+
+            # uniqName = argv[fnameIndex - 1]
         else:
-            uniqName = index
+            # uniqName = index
+            pass
     else:
         showHelp(argv[0])
         return
@@ -465,30 +497,36 @@ def save(argc, argv, interface, config, db):
     return
     """
 
+
 # Load data
-def load(argc, argv, hp):
+def load(argc, argv, interface, config, db, taskmanager):
     if argc == 2 and argv[1] != 'help':
+        notImplemented('load')
+        """
         loadFile = argv[1]
 
         try:
             fp = open(loadFile, 'r')
-            hp.ENUM_HOSTS = {}
-            hp.ENUM_HOSTS = pickle.load(fp)
+            interface.ENUM_HOSTS = {}
+            interface.ENUM_HOSTS = pickle.load(fp)
             fp.close()
-            hp.updateCmdCompleter(hp.ENUM_HOSTS)
+            interface.updateCmdCompleter(interface.ENUM_HOSTS)
             print('Host data restored:')
             print('')
-            host(2, ['host', 'list'], hp)
+            host(2, ['host', 'list'], interface)
             return
         except Exception as e:
             print('Caught exception while restoring host data:', e)
+        """
 
     showHelp(argv[0])
 
 
 # Open log file
-def log(argc, argv, hp):
+def log(argc, argv, interface, config, db, taskmanager):
     if argc == 2:
+        notImplemented('log')
+        """
         logFile = argv[1]
         try:
             fp = open(logFile, 'a')
@@ -496,30 +534,33 @@ def log(argc, argv, hp):
             print('Failed to open %s for logging: %s' % (logFile, e))
             return
         try:
-            hp.LOG_FILE = fp
+            interface.LOG_FILE = fp
             ts = []
             for x in time.localtime():
                 ts.append(x)
             theTime = "%d-%d-%d, %d:%d:%d" % (ts[0], ts[1], ts[2], ts[3], ts[4], ts[5])
-            hp.LOG_FILE.write("\n### Logging started at: %s ###\n" % theTime)
+            interface.LOG_FILE.write("\n### Logging started at: %s ###\n" % theTime)
         except Exception as e:
             print("Cannot write to file '%s': %s" % (logFile, e))
-            hp.LOG_FILE = False
+            interface.LOG_FILE = False
             return
         print("Commands will be logged to: '%s'" % logFile)
         return
+        """
     showHelp(argv[0])
 
 
 # Show help
-def help(argc, argv, hp):
+def help(argc, argv, interface, config, db, taskmanager):
     showHelp(False)
 
 
 # Debug, disabled by default
-def debug(argc, argv, hp):
+def debug(argc, argv, interface, config, db, taskmanager):
+    notImplemented('debug')
+    """
     command = ''
-    if not hp.DEBUG:
+    if not interface.DEBUG:
         print('Debug is disabled! To enable, try the set command...')
         return
     if argc == 1:
@@ -530,6 +571,7 @@ def debug(argc, argv, hp):
         command = command.strip()
         print(eval(command))
     return
+    """
 
 
 # Quit!
