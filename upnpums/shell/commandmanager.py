@@ -191,7 +191,6 @@ class CmdManager(CmdCompleter):
             # FIXME: Need to clean up stopped tasks.
 
             # Remove stopped threads.
-            print(taskmanager.threads.items())
             for k, v in taskmanager.threads.items():
 
                 if v.exitcode:
