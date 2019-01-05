@@ -54,3 +54,6 @@ class TaskManager:
                 self.threads[threadname].join()
             except:
                 print("Error: {threadname} failed to close.".format(threadname=threadname))
+
+    def cleanup(self):
+        self.stop('ALL')

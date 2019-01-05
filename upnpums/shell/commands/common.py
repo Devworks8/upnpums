@@ -533,12 +533,12 @@ def debug(argc, argv, hp):
 
 
 # Quit!
-def exit(argc, argv, interface, config, db):
-    quit(argc, argv, interface, config, db)
+def exit(argc, argv, interface, config, db, taskmanager):
+    quit(argc, argv, interface, config, db, taskmanager)
 
 
 # Quit!
-def quit(argc, argv, interface, config, db):
+def quit(argc, argv, interface, config, db, taskmanager):
     if argc == 2 and argv[1] == 'help':
         showHelp(argv[0])
         return
@@ -546,4 +546,5 @@ def quit(argc, argv, interface, config, db):
     print('')
     db.cleanup()
     cleanup(interface)
+    taskmanager.cleanup()
     sys.exit(0)

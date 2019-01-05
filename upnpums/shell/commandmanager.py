@@ -189,14 +189,13 @@ class CmdManager(CmdCompleter):
         while True:
 
             # FIXME: Need to clean up stopped tasks.
-            """
+
             # Remove stopped threads.
             print(taskmanager.threads.items())
             for k, v in taskmanager.threads.items():
-                
-                if 'stopped' in v:
+
+                if v.exitcode:
                     taskmanager.stop(k)
-            """
 
             # Drop user into shell
             if interface.BATCH_FILE is not None:
@@ -228,7 +227,7 @@ class CmdManager(CmdCompleter):
 
                 else:
                     try:
-                        interface.funcPtr(argc, argv, interface, config, db)
+                        interface.funcPtr(argc, argv, interface, config, db, taskmanager)
 
                     except KeyboardInterrupt:
                         print('\nAction interrupted by user...')
