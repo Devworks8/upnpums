@@ -11,8 +11,9 @@ from datetime import timedelta
 
 # TODO: Finish error handling.
 class DbParser:
-    def __init__(self, config):
+    def __init__(self, config, taskmanager):
         self.config = config
+        self.taskmanager = taskmanager
         self.db_path = config.get(header='database_path')[0][1]
         self.data = self.__load_database()
 
@@ -42,7 +43,8 @@ class DbParser:
         :param cursor: cursor object
         :return:
         """
-        self.populate(data=data, cursor=cursor)
+        self.taskmanager.add_thread(self.populate, (data, cursor,))
+        self.taskmanager.start('populate')
 
     def __db_key(self, root, parent):
         """

@@ -170,7 +170,7 @@ class CmdManager(CmdCompleter):
         for file in os.listdir(os.getcwd()):
             self.appCommands['load'][file] = None
 
-    def start(self, argc, argv, interface, config, db):
+    def start(self, argc, argv, interface, config, db, taskmanager):
         """
         Start the shell interface.
         :param argc: Argument count
@@ -178,6 +178,7 @@ class CmdManager(CmdCompleter):
         :param interface: Shell object
         :param config: Config object
         :param db: Database object
+        :param taskmanager: Task Manager object
         :return:
         """
 
@@ -186,6 +187,16 @@ class CmdManager(CmdCompleter):
 
         # Main loop
         while True:
+
+            # FIXME: Need to clean up stopped tasks.
+            """
+            # Remove stopped threads.
+            print(taskmanager.threads.items())
+            for k, v in taskmanager.threads.items():
+                
+                if 'stopped' in v:
+                    taskmanager.stop(k)
+            """
 
             # Drop user into shell
             if interface.BATCH_FILE is not None:

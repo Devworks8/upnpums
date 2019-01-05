@@ -11,6 +11,7 @@ Christian Lachapelle & Jason Major
 ################################
 import sys
 
+from shell.taskmanager import *
 from config.configure import *
 from database.dbparser import *
 from shell.commandmanager import *
@@ -20,13 +21,18 @@ __VERSION__ = "0.1"
 
 # Main
 def main(argc, argv):
-    # Initialize the config
+    # Initialize the Task Manager
+    tm = TaskManager()
+
+    # Initialize the Config
     cm = CfgManager()
-    dm = DbParser(config=cm)
+
+    # Initialize the Database
+    dm = DbParser(config=cm, taskmanager=tm)
 
     # Initilize the shell class
     sh = CmdManager(config=cm, db=dm)
-    sh.start(argc, argv, interface=sh, config=cm, db=dm)
+    sh.start(argc, argv, interface=sh, config=cm, db=dm, taskmanager=tm)
 
     # Initialize upnp class
     # hp = Upnp(False, False, None, appCommands);
