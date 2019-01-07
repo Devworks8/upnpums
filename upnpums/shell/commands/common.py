@@ -51,7 +51,6 @@ def start(argc, argv, interface, config, db):
     :param interface: interface object
     :param config: config object
     :param db: database object
-    :param taskmanager: task manager object
     :return:
     """
     if argv[1].lower() in interfaces:
@@ -67,7 +66,6 @@ def stop(argc, argv, interface, config, db):
         :param interface: interface object
         :param config: config object
         :param db: database object
-        :param taskmanager: task manager object
         :return:
         """
     if argv[1].lower() in interfaces:
@@ -79,35 +77,22 @@ def stop(argc, argv, interface, config, db):
 def set(argc, argv, interface, config, db):
     if argc >= 2:
         action = argv[1]
-        if action == 'ums_ip':
-            config.set(action, argv[2])
-            return
-        elif action == 'ums_port':
-            config.set(action, argv[2])
-            return
-        elif action == 'upnp_ip':
-            config.set(action, argv[2])
-            return
-        elif action == 'upnp_port':
-            config.set(action, argv[2])
-            return
-        elif action == 'database_path':
-            config.set(action, argv[2])
-            return
-        elif action == 'database_library':
-            config.set(action, argv[2])
-            return
-        elif action == 'm3u8_path':
-            config.set(action, argv[2])
-            return
-        elif action == 'threading_exit':
-            config.set(action, argv[2])
-            return
-        elif action == 'threading_maxworkers':
-            config.set(action, argv[2])
+        action_list = ['ums_ip', 'ums_port', 'upnp_ip', 'upnp_port', 'database_path', 'database_library', 'm3u8_path',
+                       'threading_exit', 'threading_maxworkers', 'show']
+
+        if action in action_list:
+            if action == 'show':
+                print(config.show_config())
+                return
+            else:
+                config.set(action, argv[2])
+                return
+        else:
+            showHelp(argv[0])
             return
 
-            """
+        """
+
             elif action == 'uniq':
                 interface.UNIQ = toggleVal(interface.UNIQ)
                 print("Show unique hosts set to: %s" % interface.UNIQ)
@@ -166,12 +151,8 @@ def set(argc, argv, interface, config, db):
                     except Exception as e:
                         print('Caught exception setting new max host value:', e)
                     return
-            """
-        elif action == 'show':
-            print(config.show_config())
-            return
 
-            """
+            
             print('Multicast IP:          ', interface.ip)
             print('Multicast port:        ', interface.port)
             print('Network interface:     ', interface.IFACE)
@@ -185,9 +166,6 @@ def set(argc, argv, interface, config, db):
             print('Using log file:        ', interface.LOG_FILE)
             return
             """
-
-    showHelp(argv[0])
-    return
 
 
 # Host command. It's kind of big.
