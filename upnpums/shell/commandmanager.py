@@ -1,5 +1,7 @@
 import os
 
+import multitasking
+
 from shell.commands.common import *
 from shell.commands.upnp import *
 
@@ -170,7 +172,8 @@ class CmdManager(CmdCompleter):
         for file in os.listdir(os.getcwd()):
             self.appCommands['load'][file] = None
 
-    def start(self, argc, argv, interface, config, db, taskmanager):
+    @multitasking.task
+    def start(self, argc, argv, interface, config, db):
         """
         Start the shell interface.
         :param argc: Argument count
@@ -191,10 +194,12 @@ class CmdManager(CmdCompleter):
             # FIXME: Need to clean up stopped tasks.
 
             # Remove stopped threads.
+            """
             for k, v in taskmanager.threads.items():
 
                 if v.exitcode:
                     taskmanager.stop(k)
+            """
 
             # Drop user into shell
             if interface.BATCH_FILE is not None:
@@ -226,7 +231,7 @@ class CmdManager(CmdCompleter):
 
                 else:
                     try:
-                        interface.funcPtr(argc, argv, interface, config, db, taskmanager)
+                        interface.funcPtr(argc, argv, interface, config, db)
 
                     except KeyboardInterrupt:
                         print('\nAction interrupted by user...')

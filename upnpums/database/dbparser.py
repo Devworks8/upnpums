@@ -7,16 +7,17 @@ from m3u8_generator import *
 from sqlite3.dbapi2 import *
 from mutagen.id3 import ID3
 from datetime import timedelta
+import multitasking
 
 
 # TODO: Finish error handling.
 class DbParser:
-    def __init__(self, config, taskmanager):
+    def __init__(self, config):
         self.config = config
-        self.taskmanager = taskmanager
         self.db_path = config.get(header='database_path')[0][1]
         self.data = self.__load_database()
 
+    @multitasking.task
     def __load_database(self):
         """
         Create database and cursor objects.
@@ -33,8 +34,7 @@ class DbParser:
 
             data = connect(os.path.join(self.db_path, "CATALOG"))
             self.cursor = data.cursor()
-            self.__setup_database(data=data, cursor=self.cursor)
-        return data
+            return self.__setup_database(data=data, cursor=self.cursor)
 
     def __setup_database(self, data, cursor):
         """
@@ -43,8 +43,9 @@ class DbParser:
         :param cursor: cursor object
         :return:
         """
-        self.taskmanager.add_thread(self.populate, (data, cursor,))
-        self.taskmanager.start('populate')
+        # self.taskmanager.add_thread(self.populate, (data, cursor,))
+        # self.taskmanager.start('populate')
+        return self.populate(data=data, cursor=cursor)
 
     def __db_key(self, root, parent):
         """
@@ -77,6 +78,7 @@ class DbParser:
 
         return results
 
+    # @multitasking.task
     def populate(self, data, cursor):
         """
         Dynamically create a database using the library directory structure.
@@ -163,7 +165,7 @@ class DbParser:
                         cursor.execute(query_entry)
 
         data.commit()
-        return
+        return data
 
     # TODO: Finish implementation of del_table()
     def del_table(self, table):

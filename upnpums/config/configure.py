@@ -48,6 +48,9 @@ class CfgManager:
             ums:
                 ip: None
                 port: None
+        threading:
+            maxworkers: None
+            exit: 'killall'
                 """
 
         return defaults

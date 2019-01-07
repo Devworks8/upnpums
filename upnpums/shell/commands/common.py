@@ -1,6 +1,7 @@
 import pickle
 import time
 import base64
+import multitasking
 
 from shell.helpers import *
 from network.interfaces.ums import *
@@ -42,7 +43,7 @@ commonCommands = {
 }
 
 
-def start(argc, argv, interface, config, db, taskmanager):
+def start(argc, argv, interface, config, db):
     """
     Start an interface
     :param argc: argument count
@@ -58,7 +59,7 @@ def start(argc, argv, interface, config, db, taskmanager):
         iface.start()
 
 
-def stop(argc, argv, interface, config, db, taskmanager):
+def stop(argc, argv, interface, config, db):
     """
         Stop an interface
         :param argc: argument count
@@ -75,7 +76,7 @@ def stop(argc, argv, interface, config, db, taskmanager):
 
 
 # Manipulate application settings
-def set(argc, argv, interface, config, db, taskmanager):
+def set(argc, argv, interface, config, db):
     if argc >= 2:
         action = argv[1]
         if action == 'ums_ip':
@@ -97,6 +98,12 @@ def set(argc, argv, interface, config, db, taskmanager):
             config.set(action, argv[2])
             return
         elif action == 'm3u8_path':
+            config.set(action, argv[2])
+            return
+        elif action == 'threading_exit':
+            config.set(action, argv[2])
+            return
+        elif action == 'threading_maxworkers':
             config.set(action, argv[2])
             return
 
@@ -184,7 +191,7 @@ def set(argc, argv, interface, config, db, taskmanager):
 
 
 # Host command. It's kind of big.
-def host(argc, argv, interface, config, db, taskmanagerp):
+def host(argc, argv, interface, config, db):
     return notImplemented('host')
 
     """
@@ -417,7 +424,7 @@ def host(argc, argv, interface, config, db, taskmanagerp):
 
 
 # Save data
-def save(argc, argv, interface, config, db, taskmanager):
+def save(argc, argv, interface, config, db):
     suffix = '%s_%s.mir'
     uniqName = ''
     saveType = ''
@@ -499,7 +506,7 @@ def save(argc, argv, interface, config, db, taskmanager):
 
 
 # Load data
-def load(argc, argv, interface, config, db, taskmanager):
+def load(argc, argv, interface, config, db):
     if argc == 2 and argv[1] != 'help':
         notImplemented('load')
         """
@@ -523,7 +530,7 @@ def load(argc, argv, interface, config, db, taskmanager):
 
 
 # Open log file
-def log(argc, argv, interface, config, db, taskmanager):
+def log(argc, argv, interface, config, db):
     if argc == 2:
         notImplemented('log')
         """
@@ -551,12 +558,12 @@ def log(argc, argv, interface, config, db, taskmanager):
 
 
 # Show help
-def help(argc, argv, interface, config, db, taskmanager):
+def help(argc, argv, interface, config, db):
     showHelp(False)
 
 
 # Debug, disabled by default
-def debug(argc, argv, interface, config, db, taskmanager):
+def debug(argc, argv, interface, config, db):
     notImplemented('debug')
     """
     command = ''
@@ -575,18 +582,18 @@ def debug(argc, argv, interface, config, db, taskmanager):
 
 
 # Quit!
-def exit(argc, argv, interface, config, db, taskmanager):
-    quit(argc, argv, interface, config, db, taskmanager)
+def exit(argc, argv, interface, config, db):
+    quit(argc, argv, interface, config, db)
 
 
 # Quit!
-def quit(argc, argv, interface, config, db, taskmanager):
+def quit(argc, argv, interface, config, db):
     if argc == 2 and argv[1] == 'help':
         showHelp(argv[0])
         return
     print('Bye!')
     print('')
-    db.cleanup()
+    # db.cleanup()
     cleanup(interface)
-    taskmanager.cleanup()
+    exec('multitasking.{}'.format(config.get('threading_exit')[0][1]))
     sys.exit(0)
