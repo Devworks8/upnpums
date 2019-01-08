@@ -49,6 +49,7 @@ class CfgManager:
                 ip: None
                 port: None
         threading:
+            engine: 'thread'
             maxworkers: None
             exit: 'killall'
                 """

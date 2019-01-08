@@ -2,12 +2,12 @@ import os.path
 import sndhdr
 import audioread
 
+import multitasking
 from m3u8 import *
 from m3u8_generator import *
 from sqlite3.dbapi2 import *
 from mutagen.id3 import ID3
 from datetime import timedelta
-import multitasking
 
 
 # TODO: Finish error handling.
@@ -78,7 +78,6 @@ class DbParser:
 
         return results
 
-    # @multitasking.task
     def populate(self, data, cursor):
         """
         Dynamically create a database using the library directory structure.
